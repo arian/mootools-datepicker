@@ -497,6 +497,12 @@ var DatePicker = new Class({
 	renderMonth: function() {
 		var month = this.d.getMonth();
 
+		// save Init Date
+		var dayBeforeRender = this.d.get('Date');
+		var monthBeforeRender = this.d.get('Month');
+		var yearBeforeRender = this.d.get('Year');
+		// --
+
 		this.picker.getElement('.titleText').set('text', this.options.months[month] + ' ' + this.d.getFullYear());
 
 		this.d.setDate(1);
@@ -554,6 +560,12 @@ var DatePicker = new Class({
 			this.d.setDate(this.d.getDate() + 1);
 		}
 		if (!available) this.limit.right = true;
+
+		// Return init date
+		this.d.set('Date', dayBeforeRender);
+		this.d.set('Month', monthBeforeRender);
+		this.d.set('Year', yearBeforeRender);
+		//--
 	},
 
 	renderYear: function() {
