@@ -17,15 +17,15 @@
 <script src="../Source/datepicker.js" type="text/javascript"></script>
 
 <script type="text/javascript">
-<!-- 
+<!--
 
 window.addEvent('domready',function(){
-	
+
 	var debugElmt = document.id('debug');
 	var debug = function(txt){
 		debugElmt.set('text',txt);
 	}
-	
+
 	// Events and vista skin
 	new DatePicker($$('.demo_vista'), {
 		pickerClass: 'datepicker_vista',
@@ -45,23 +45,27 @@ window.addEvent('domready',function(){
 			debug('onPrevious');
 		}
 	});
-	
+
 	// Dashboard skin
 	new DatePicker($$('.demo_dashboard'), { pickerClass: 'datepicker_dashboard' });
-	
+
 	// jQuery UI skin
-	new DatePicker($$('.demo_jqui'), { pickerClass: 'datepicker_jqui', positionOffset: { x: 0, y: 5 } });
+	new DatePicker($$('.demo_jqui'), {
+		pickerClass: 'datepicker_jqui',
+		positionOffset: {x: 0, y: 5},
+		format: '%d.%m.%Y %H:%M:%S'
+	});
 
 //	MooTools.lang.setLanguage("nl-NL");
-	
+
 	// MooTools.lang support
 	new DatePicker('i18n', {
 		positionOffset: { x: 0, y: 5 },
 		format: '%d-%m-%Y'
 	});
-	
-	
-	// Attach the datepicker manually 
+
+
+	// Attach the datepicker manually
 	var dp = new DatePicker();
 	document.id('attach').addEvent('click',function(e){
 		e.stop();
@@ -75,27 +79,34 @@ window.addEvent('domready',function(){
 		e.stop();
 		dp.show('attachByClick');
 	});
-	
+
 	// Min max date
 	new DatePicker('minMax',{
-		minDate: '03/05/2009',
-		maxDate: '04/05/2010'
+		minDate: '03/05/2010',
+		maxDate: '04/05/2011'
 	});
-	
+
 	// Toggle
 	new DatePicker('toggle',{
 		toggle: 'toggler',
 		timePicker: true
 	});
-	
+
+	// Time
 	new DatePicker('time',{
 		timePicker: true,
 		timePickerOnly: true
 	});
 
+	// Date object as max/minDate
+	new DatePicker('date_object_options', {
+		minDate: new Date('03/05/2010'),
+		maxDate: new Date('04/05/2011')
+	});
+
 });
-	
-// -->	
+
+// -->
 </script>
 
 
@@ -127,6 +138,11 @@ window.addEvent('domready',function(){
 <input type="text" value="" class="date demo_vista" />
 </p>
 
+<p>
+<label>Third datepicker with Vista skin:</label><br />
+<input type="text" value="" class="date demo_vista" />
+</p>
+
 
 <p>
 <label>Datepicker with OSX Dashboard skin:</label><br />
@@ -140,12 +156,12 @@ window.addEvent('domready',function(){
 
 <p>
 <label>Datepicker basic (CSS only) With localisation (Dutch):</label><br />
-<input id="i18n" type="text" value="" class="date" />
+<input id="i18n" type="text" value="23-09-2010" class="date" />
 </p>
 
 <p>
-<a href="#" id="attach">Click to attach the datpicker to this field</a><br />
-<a href="#" id="detach">Click to detach the datpicker from this field</a><br />
+<a href="#" id="attach">Click to attach the datepicker to this field</a><br />
+<a href="#" id="detach">Click to detach the datepicker from this field</a><br />
 <a href="#" id="show">Show datepicker (after you attached it)</a><br />
 <label>Attach Datepicker:</label><br />
 <input id="attachByClick" type="text" value="" class="date" />
@@ -167,6 +183,13 @@ window.addEvent('domready',function(){
 <label>Time Picker:</label><br />
 <input id="time" type="text" value="" class="date" />
 </p>
+
+
+<p>
+<label>Date Object as min/max date option:</label><br />
+<input id="date_object_options" type="text" value="" class="date" />
+</p>
+
 
 </body>
 </html>
