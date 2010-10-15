@@ -1,21 +1,28 @@
-//MooTools More, <http://mootools.net/more>. Copyright (c) 2006-2009 Aaron Newton <http://clientcide.com/>, Valerio Proietti <http://mad4milk.net> & the MooTools team <http://mootools.net/developers>, MIT Style License.
-
+// MooTools: the javascript framework.
+// Load this file's selection again by visiting: http://mootools.net/more-rc/1abeaf16bbb99a75bdf89e2f8cb4f09c 
+// Or build this file again with packager using: packager build More/Date More/Drag More/Drag.Move
 /*
 ---
 
 script: More.js
+
+name: More
 
 description: MooTools More
 
 license: MIT-style license
 
 authors:
-- Guillermo Rauch
-- Thomas Aylott
-- Scott Kyle
+  - Guillermo Rauch
+  - Thomas Aylott
+  - Scott Kyle
+  - Arian Stolwijk
+  - Tim Wienk
+  - Christoph Pojer
+  - Aaron Newton
 
 requires:
-- core:1.2.4/MooTools
+  - Core/MooTools
 
 provides: [MooTools.More]
 
@@ -23,135 +30,329 @@ provides: [MooTools.More]
 */
 
 MooTools.More = {
-	'version': '1.2.4.4',
-	'build': '6f6057dc645fdb7547689183b2311063bd653ddf'
+	'version': '1.3.0.1rc1',
+	'build': '361dd6c3755b66898e9e0ee5d55c343188b619b7'
 };
+
 
 /*
 ---
 
-script: MooTools.Lang.js
+script: Object.Extras.js
+
+name: Object.Extras
+
+description: Extra Object generics, like getFromPath which allows a path notation to child elements.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Object
+  - /MooTools.More
+
+provides: [Object.Extras]
+
+...
+*/
+
+Object.extend({
+
+	getFromPath: function(source, key){
+		var parts = key.split('.');
+		for (var i = 0, l = parts.length; i < l; i++){
+			if (source.hasOwnProperty(parts[i])) source = source[parts[i]];
+			else return null;
+		}
+		return source;
+	},
+
+	cleanValues: function(object, method){
+		if (!method) method = function(obj){
+			return obj != null;
+		};
+		for (key in object){
+			if (!method(object[key])) delete object[key];
+		}
+		return object;
+	},
+
+	erase: function(object, key){
+		if (object.hasOwnProperty(key)) delete object[key];
+		return object;
+	},
+
+	run: function(object){
+		var args = Array.slice(arguments, 1);
+		for (key in object){
+			if (typeOf(object[key]) == 'function') object[key].apply(object, args);
+		}
+		return object;
+	}
+
+});
+
+
+/*
+---
+
+script: Locale.js
+
+name: Locale
 
 description: Provides methods for localization.
 
 license: MIT-style license
 
 authors:
-- Aaron Newton
+  - Aaron Newton
+  - Arian Stolwijk
 
 requires:
-- core:1.2.4/Events
-- /MooTools.More
+  - Core/Events
+  - /Object.Extras
+  - /MooTools.More
 
-provides: [MooTools.Lang]
+provides: [Locale, Lang]
 
 ...
 */
 
 (function(){
 
-	var data = {
-		language: 'en-US',
-		languages: {
-			'en-US': {}
-		},
-		cascades: ['en-US']
-	};
-	
-	var cascaded;
+var current = null,
+	locales = {},
+	inherits = {};
 
-	MooTools.lang = new Events();
+var getSet = function(set){
+	if (instanceOf(set, Locale.Set)) return set;
+	else return locales[set];
+};
 
-	$extend(MooTools.lang, {
+var Locale = this.Locale = {
 
-		setLanguage: function(lang){
-			if (!data.languages[lang]) return this;
-			data.language = lang;
-			this.load();
-			this.fireEvent('langChange', lang);
-			return this;
-		},
-
-		load: function() {
-			var langs = this.cascade(this.getCurrentLanguage());
-			cascaded = {};
-			$each(langs, function(set, setName){
-				cascaded[setName] = this.lambda(set);
-			}, this);
-		},
-
-		getCurrentLanguage: function(){
-			return data.language;
-		},
-
-		addLanguage: function(lang){
-			data.languages[lang] = data.languages[lang] || {};
-			return this;
-		},
-
-		cascade: function(lang){
-			var cascades = (data.languages[lang] || {}).cascades || [];
-			cascades.combine(data.cascades);
-			cascades.erase(lang).push(lang);
-			var langs = cascades.map(function(lng){
-				return data.languages[lng];
-			}, this);
-			return $merge.apply(this, langs);
-		},
-
-		lambda: function(set) {
-			(set || {}).get = function(key, args){
-				return $lambda(set[key]).apply(this, $splat(args));
-			};
-			return set;
-		},
-
-		get: function(set, key, args){
-			if (cascaded && cascaded[set]) return (key ? cascaded[set].get(key, args) : cascaded[set]);
-		},
-
-		set: function(lang, set, members){
-			this.addLanguage(lang);
-			langData = data.languages[lang];
-			if (!langData[set]) langData[set] = {};
-			$extend(langData[set], members);
-			if (lang == this.getCurrentLanguage()){
-				this.load();
-				this.fireEvent('langChange', lang);
-			}
-			return this;
-		},
-
-		list: function(){
-			return Hash.getKeys(data.languages);
+	define: function(locale, set, key, value){
+		var name;
+		if (instanceOf(locale, Locale.Set)){
+			name = locale.name;
+			if (name) locales[name] = locale;
+		} else {
+			name = locale;
+			if (!locales[name]) locales[name] = new Locale.Set(name);
+			locale = locales[name];
 		}
 
-	});
+		if (set) locale.define(set, key, value);
+
+		
+
+		if (!current) current = locale;
+
+		return locale;
+	},
+
+	use: function(locale){
+		locale = getSet(locale);
+
+		if (locale){
+			current = locale;
+
+			this.fireEvent('change', locale);
+
+			
+		}
+
+		return this;
+	},
+
+	getCurrent: function(){
+		return current;
+	},
+
+	get: function(key, args){
+		return (current) ? current.get(key, args) : '';
+	},
+
+	inherit: function(locale, inherits, set){
+		locale = getSet(locale);
+
+		if (locale) locale.inherit(inherits, set);
+		return this;
+	},
+
+	list: function(){
+		return Object.keys(locales);
+	}
+
+};
+
+Object.append(Locale, new Events);
+
+Locale.Set = new Class({
+
+	sets: {},
+
+	inherits: {
+		locales: [],
+		sets: {}
+	},
+
+	initialize: function(name){
+		this.name = name || '';
+	},
+
+	define: function(set, key, value){
+		var defineData = this.sets[set];
+		if (!defineData) defineData = {};
+
+		if (key){
+			if (typeOf(key) == 'object') defineData = Object.merge(defineData, key);
+			else defineData[key] = value;
+		}
+		this.sets[set] = defineData;
+
+		return this;
+	},
+
+	get: function(key, args, _base){
+		var value = Object.getFromPath(this.sets, key);
+		if (value != null) return Type.isFunction(value) ? value.apply(null, Array.from(args)) : value;
+
+		// get value of inherited locales
+		var index = key.indexOf('.'),
+			set = index < 0 ? key : key.substr(0, index),
+			names = (this.inherits.sets[set] || []).combine(this.inherits.locales).include('en-US');
+		if (!_base) _base = [];
+
+		for (var i = 0, l = names.length; i < l; i++){
+			if (_base.contains(names[i])) continue;
+			_base.include(names[i]);
+
+			var locale = locales[names[i]];
+			if (!locale) continue;
+
+			value = locale.get(key, args, _base);
+			if (value != null) return value;
+		}
+
+		return '';
+	},
+
+	inherit: function(names, set){
+		names = Array.from(names);
+
+		if (set && !this.inherits.sets[set]) this.inherits.sets[set] = [];
+
+		var l = names.length;
+		while (l--) (set ? this.inherits.sets[set] : this.inherits.locales).unshift(names[l]);
+
+		return this;
+	}
+
+});
+
+
 
 })();
+
+
+/*
+---
+
+name: Locale.en-US.Date
+
+description: Date messages for US English.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - /Locale
+
+provides: [Locale.en-US.Date]
+
+...
+*/
+
+Locale.define('en-US', 'Date', {
+
+	months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+	months_abbr: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+	days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+	days_abbr: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+
+	// Culture's date order: MM/DD/YYYY
+	dateOrder: ['month', 'date', 'year'],
+	shortDate: '%m/%d/%Y',
+	shortTime: '%I:%M%p',
+	AM: 'AM',
+	PM: 'PM',
+
+	// Date.Extras
+	ordinal: function(dayOfMonth){
+		// 1st, 2nd, 3rd, etc.
+		return (dayOfMonth > 3 && dayOfMonth < 21) ? 'th' : ['th', 'st', 'nd', 'rd', 'th'][Math.min(dayOfMonth % 10, 4)];
+	},
+
+	lessThanMinuteAgo: 'less than a minute ago',
+	minuteAgo: 'about a minute ago',
+	minutesAgo: '{delta} minutes ago',
+	hourAgo: 'about an hour ago',
+	hoursAgo: 'about {delta} hours ago',
+	dayAgo: '1 day ago',
+	daysAgo: '{delta} days ago',
+	weekAgo: '1 week ago',
+	weeksAgo: '{delta} weeks ago',
+	monthAgo: '1 month ago',
+	monthsAgo: '{delta} months ago',
+	yearAgo: '1 year ago',
+	yearsAgo: '{delta} years ago',
+
+	lessThanMinuteUntil: 'less than a minute from now',
+	minuteUntil: 'about a minute from now',
+	minutesUntil: '{delta} minutes from now',
+	hourUntil: 'about an hour from now',
+	hoursUntil: 'about {delta} hours from now',
+	dayUntil: '1 day from now',
+	daysUntil: '{delta} days from now',
+	weekUntil: '1 week from now',
+	weeksUntil: '{delta} weeks from now',
+	monthUntil: '1 month from now',
+	monthsUntil: '{delta} months from now',
+	yearUntil: '1 year from now',
+	yearsUntil: '{delta} years from now'
+
+});
+
 
 /*
 ---
 
 script: Date.js
 
+name: Date
+
 description: Extends the Date native object to include methods useful in managing dates.
 
 license: MIT-style license
 
 authors:
-- Aaron Newton
-- Nicholas Barthelemy - https://svn.nbarthelemy.com/date-js/
-- Harald Kirshner - mail [at] digitarald.de; http://digitarald.de
-- Scott Kyle - scott [at] appden.com; http://appden.com
+  - Aaron Newton
+  - Nicholas Barthelemy - https://svn.nbarthelemy.com/date-js/
+  - Harald Kirshner - mail [at] digitarald.de; http://digitarald.de
+  - Scott Kyle - scott [at] appden.com; http://appden.com
 
 requires:
-- core:1.2.4/Array
-- core:1.2.4/String
-- core:1.2.4/Number
-- core:1.2.4/Lang
-- core:1.2.4/Date.English.US
-- /MooTools.More
+  - Core/Array
+  - Core/String
+  - Core/Number
+  - /Locale
+  - /Locale.en-US.Date
+  - /MooTools.More
 
 provides: [Date]
 
@@ -161,8 +362,6 @@ provides: [Date]
 (function(){
 
 var Date = this.Date;
-
-if (!Date.now) Date.now = $time;
 
 Date.Methods = {
 	ms: 'Milliseconds',
@@ -175,28 +374,23 @@ Date.Methods = {
 
 ['Date', 'Day', 'FullYear', 'Hours', 'Milliseconds', 'Minutes', 'Month', 'Seconds', 'Time', 'TimezoneOffset',
 	'Week', 'Timezone', 'GMTOffset', 'DayOfYear', 'LastMonth', 'LastDayOfMonth', 'UTCDate', 'UTCDay', 'UTCFullYear',
-	'AMPM', 'Ordinal', 'UTCHours', 'UTCMilliseconds', 'UTCMinutes', 'UTCMonth', 'UTCSeconds'].each(function(method){
+	'AMPM', 'Ordinal', 'UTCHours', 'UTCMilliseconds', 'UTCMinutes', 'UTCMonth', 'UTCSeconds', 'UTCMilliseconds'].each(function(method){
 	Date.Methods[method.toLowerCase()] = method;
 });
 
-var pad = function(what, length){
-	return new Array(length - String(what).length + 1).join('0') + what;
+var pad = function(what, length, string){
+	if (!string) string = '0';
+	return new Array(length - String(what).length + 1).join(string) + what;
 };
 
 Date.implement({
 
 	set: function(prop, value){
-		switch ($type(prop)){
-			case 'object':
-				for (var p in prop) this.set(p, prop[p]);
-				break;
-			case 'string':
-				prop = prop.toLowerCase();
-				var m = Date.Methods;
-				if (m[prop]) this['set' + m[prop]](value);
-		}
+		prop = prop.toLowerCase();
+		var m = Date.Methods;
+		if (m[prop]) this['set' + m[prop]](value);
 		return this;
-	},
+	}.overloadSetter(),
 
 	get: function(prop){
 		prop = prop.toLowerCase();
@@ -211,7 +405,7 @@ Date.implement({
 
 	increment: function(interval, times){
 		interval = interval || 'day';
-		times = $pick(times, 1);
+		times = times != null ? times : 1;
 
 		switch (interval){
 			case 'year':
@@ -232,7 +426,7 @@ Date.implement({
 	},
 
 	decrement: function(interval, times){
-		return this.increment(interval, -1 * $pick(times, 1));
+		return this.increment(interval, -1 * (times != null ? times : 1));
 	},
 
 	isLeapYear: function(){
@@ -244,9 +438,9 @@ Date.implement({
 	},
 
 	diff: function(date, resolution){
-		if ($type(date) == 'string') date = Date.parse(date);
-		
-		return ((date - this) / Date.units[resolution || 'day'](3, 3)).toInt(); // non-leap year, 30-day month
+		if (typeOf(date) == 'string') date = Date.parse(date);
+
+		return ((date - this) / Date.units[resolution || 'day'](3, 3)).round(); // non-leap year, 30-day month
 	},
 
 	getLastDayOfMonth: function(){
@@ -254,14 +448,14 @@ Date.implement({
 	},
 
 	getDayOfYear: function(){
-		return (Date.UTC(this.get('year'), this.get('mo'), this.get('date') + 1) 
+		return (Date.UTC(this.get('year'), this.get('mo'), this.get('date') + 1)
 			- Date.UTC(this.get('year'), 0, 1)) / Date.units.day();
 	},
 
 	getWeek: function(){
 		return (this.get('dayofyear') / 7).ceil();
 	},
-	
+
 	getOrdinal: function(day){
 		return Date.getMsg('ordinal', day || this.get('date'));
 	},
@@ -294,8 +488,8 @@ Date.implement({
 		return this;
 	},
 
-	isValid: function(date) {
-		return !!(date || this).valueOf();
+	isValid: function(date){
+		return !isNaN((date || this).valueOf());
 	},
 
 	format: function(f){
@@ -306,19 +500,24 @@ Date.implement({
 		return f.replace(/%([a-z%])/gi,
 			function($0, $1){
 				switch ($1){
-					case 'a': return Date.getMsg('days')[d.get('day')].substr(0, 3);
+					case 'a': return Date.getMsg('days_abbr')[d.get('day')];
 					case 'A': return Date.getMsg('days')[d.get('day')];
-					case 'b': return Date.getMsg('months')[d.get('month')].substr(0, 3);
+					case 'b': return Date.getMsg('months_abbr')[d.get('month')];
 					case 'B': return Date.getMsg('months')[d.get('month')];
-					case 'c': return d.toString();
+					case 'c': return d.format('%a %b %d %H:%m:%S %Y');
 					case 'd': return pad(d.get('date'), 2);
+					case 'e': return pad(d.get('date'), 2, ' ');
 					case 'H': return pad(d.get('hr'), 2);
-					case 'I': return ((d.get('hr') % 12) || 12);
+					case 'I': return pad((d.get('hr') % 12) || 12, 2);
 					case 'j': return pad(d.get('dayofyear'), 3);
+					case 'k': return pad(d.get('hr'), 2, ' ');
+					case 'l': return pad((d.get('hr') % 12) || 12, 2, ' ');
+					case 'L': return pad(d.get('ms'), 3);
 					case 'm': return pad((d.get('mo') + 1), 2);
 					case 'M': return pad(d.get('min'), 2);
 					case 'o': return d.get('ordinal');
 					case 'p': return Date.getMsg(d.get('ampm'));
+					case 's': return Math.round(d / 1000);
 					case 'S': return pad(d.get('seconds'), 2);
 					case 'U': return pad(d.get('week'), 2);
 					case 'w': return d.get('day');
@@ -326,7 +525,8 @@ Date.implement({
 					case 'X': return d.format(Date.getMsg('shortTime'));
 					case 'y': return d.get('year').toString().substr(2);
 					case 'Y': return d.get('year');
-					case 'T': return d.get('GMTOffset');
+					
+					case 'z': return d.get('GMTOffset');
 					case 'Z': return d.get('Timezone');
 				}
 				return $1;
@@ -340,9 +540,10 @@ Date.implement({
 
 });
 
-Date.alias('toISOString', 'toJSON');
-Date.alias('diff', 'compare');
-Date.alias('format', 'strftime');
+
+Date.alias('toJSON', 'toISOString');
+Date.alias('compare', 'diff');
+Date.alias('strftime', 'format');
 
 var formats = {
 	db: '%Y-%m-%d %H:%M:%S',
@@ -359,20 +560,19 @@ var nativeParse = Date.parse;
 var parseWord = function(type, word, num){
 	var ret = -1;
 	var translated = Date.getMsg(type + 's');
-
-	switch ($type(word)){
+	switch (typeOf(word)){
 		case 'object':
 			ret = translated[word.get(type)];
 			break;
 		case 'number':
-			ret = translated[month - 1];
-			if (!ret) throw new Error('Invalid ' + type + ' index: ' + index);
+			ret = translated[word];
+			if (!ret) throw new Error('Invalid ' + type + ' index: ' + word);
 			break;
 		case 'string':
 			var match = translated.filter(function(name){
 				return this.test(name);
 			}, new RegExp('^' + word, 'i'));
-			if (!match.length)    throw new Error('Invalid ' + type + ' string');
+			if (!match.length) throw new Error('Invalid ' + type + ' string');
 			if (match.length > 1) throw new Error('Ambiguous ' + type);
 			ret = match[0];
 	}
@@ -382,20 +582,20 @@ var parseWord = function(type, word, num){
 
 Date.extend({
 
-	getMsg: function(key, args) {
-		return MooTools.lang.get('Date', key, args);
+	getMsg: function(key, args){
+		return Locale.get('Date.' + key, args);
 	},
 
 	units: {
-		ms: $lambda(1),
-		second: $lambda(1000),
-		minute: $lambda(60000),
-		hour: $lambda(3600000),
-		day: $lambda(86400000),
-		week: $lambda(608400000),
+		ms: Function.from(1),
+		second: Function.from(1000),
+		minute: Function.from(60000),
+		hour: Function.from(3600000),
+		day: Function.from(86400000),
+		week: Function.from(608400000),
 		month: function(month, year){
 			var d = new Date;
-			return Date.daysInMonth($pick(month, d.get('mo')), $pick(year, d.get('year'))) * 86400000;
+			return Date.daysInMonth(month != null ? month : d.get('mo'), year != null ? year : d.get('year')) * 86400000;
 		},
 		year: function(year){
 			year = year || new Date().get('year');
@@ -412,7 +612,7 @@ Date.extend({
 	},
 
 	parse: function(from){
-		var t = $type(from);
+		var t = typeOf(from);
 		if (t == 'number') return new Date(from);
 		if (t != 'string') return from;
 		from = from.clean();
@@ -423,7 +623,6 @@ Date.extend({
 			var bits = pattern.re.exec(from);
 			return (bits) ? (parsed = pattern.handler(bits)) : false;
 		});
-
 		return parsed || new Date(nativeParse(from));
 	},
 
@@ -443,7 +642,8 @@ Date.extend({
 			localDate.get('date'),
 			localDate.get('hr'),
 			localDate.get('min'),
-			localDate.get('sec')
+			localDate.get('sec'),
+			localDate.get('ms')
 		);
 		return new Date(utcSeconds);
 	},
@@ -460,16 +660,16 @@ Date.extend({
 		for (var name in formats) Date.defineFormat(name, formats[name]);
 	},
 
-	parsePatterns: parsePatterns, // this is deprecated
-	
+
+
 	defineParser: function(pattern){
 		parsePatterns.push((pattern.re && pattern.handler) ? pattern : build(pattern));
 	},
-	
+
 	defineParsers: function(){
 		Array.flatten(arguments).each(Date.defineParser);
 	},
-	
+
 	define2DigitYearStart: function(year){
 		startYear = year % 100;
 		startCentury = year - startYear;
@@ -489,7 +689,7 @@ var regexOf = function(type){
 var replacers = function(key){
 	switch(key){
 		case 'x': // iso8601 covers yyyy-mm-dd, so just check if month is first
-			return ((Date.orderIndex('month') == 1) ? '%m[.-/]%d' : '%d[.-/]%m') + '([.-/]%y)?';
+			return ((Date.orderIndex('month') == 1) ? '%m[-./]%d' : '%d[-./]%m') + '([-./]%y)?';
 		case 'X':
 			return '%H([.:]%M)?([.:]%S([.:]%s)?)? ?%p? ?%T?';
 	}
@@ -516,10 +716,10 @@ var currentLanguage;
 
 var recompile = function(language){
 	currentLanguage = language;
-	
+
 	keys.a = keys.A = regexOf('days');
 	keys.b = keys.B = regexOf('months');
-	
+
 	parsePatterns.each(function(pattern, i){
 		if (pattern.format) parsePatterns[i] = build(pattern.format);
 	});
@@ -527,7 +727,7 @@ var recompile = function(language){
 
 var build = function(format){
 	if (!currentLanguage) return {format: format};
-	
+
 	var parsed = [];
 	var re = (format.source || format) // allow format to be regex
 	 .replace(/%([a-z])/gi,
@@ -543,16 +743,20 @@ var build = function(format){
 			parsed.push($1);
 			return '(' + p.source + ')';
 		}
-	).replace(/\[a-z\]/gi, '[a-z\\u00c0-\\uffff]'); // handle unicode words
+	).replace(/\[a-z\]/gi, '[a-z\\u00c0-\\uffff;\&]'); // handle unicode words
 
 	return {
 		format: format,
 		re: new RegExp('^' + re + '$', 'i'),
 		handler: function(bits){
 			bits = bits.slice(1).associate(parsed);
-			var date = new Date().clearTime();
+			var date = new Date().clearTime(),
+				year = bits.y || bits.Y;
+
+			if (year != null) handle.call(date, 'y', year); // need to start in the right year
 			if ('d' in bits) handle.call(date, 'd', 1);
 			if ('m' in bits || 'b' in bits || 'B' in bits) handle.call(date, 'm', 1);
+
 			for (var key in bits) handle.call(date, key, bits[key]);
 			return date;
 		}
@@ -598,34 +802,38 @@ Date.defineParsers(
 	'%o %b %d %X %T %Y' // "Thu Oct 22 08:11:23 +0000 2009"
 );
 
-MooTools.lang.addEvent('langChange', function(language){
-	if (MooTools.lang.get('Date')) recompile(language);
-}).fireEvent('langChange', MooTools.lang.getCurrentLanguage());
+Locale.addEvent('change', function(language){
+	if (Locale.get('Date')) recompile(language);
+}).fireEvent('change', Locale.getCurrent());
 
 })();
+
 
 /*
 ---
 
 script: Drag.js
 
+name: Drag
+
 description: The base Drag Class. Can be used to drag and resize Elements using mouse events.
 
 license: MIT-style license
 
 authors:
-- Valerio Proietti
-- Tom Occhinno
-- Jan Kassens
+  - Valerio Proietti
+  - Tom Occhinno
+  - Jan Kassens
 
 requires:
-- core:1.2.4/Events
-- core:1.2.4/Options
-- core:1.2.4/Element.Event
-- core:1.2.4/Element.Style
-- /MooTools.More
+  - Core/Events
+  - Core/Options
+  - Core/Element.Event
+  - Core/Element.Style
+  - /MooTools.More
 
 provides: [Drag]
+...
 
 */
 
@@ -634,12 +842,12 @@ var Drag = new Class({
 	Implements: [Events, Options],
 
 	options: {/*
-		onBeforeStart: $empty(thisElement),
-		onStart: $empty(thisElement, event),
-		onSnap: $empty(thisElement)
-		onDrag: $empty(thisElement, event),
-		onCancel: $empty(thisElement),
-		onComplete: $empty(thisElement, event),*/
+		onBeforeStart: function(thisElement){},
+		onStart: function(thisElement, event){},
+		onSnap: function(thisElement){},
+		onDrag: function(thisElement, event){},
+		onCancel: function(thisElement){},
+		onComplete: function(thisElement, event){},*/
 		snap: 6,
 		unit: 'px',
 		grid: false,
@@ -653,16 +861,28 @@ var Drag = new Class({
 	},
 
 	initialize: function(){
-		var params = Array.link(arguments, {'options': Object.type, 'element': $defined});
+		var params = Array.link(arguments, {
+			'options': Type.isObject,
+			'element': function(obj){
+				return obj != null;
+			}
+		});
+
 		this.element = document.id(params.element);
 		this.document = this.element.getDocument();
 		this.setOptions(params.options || {});
-		var htype = $type(this.options.handle);
+		var htype = typeOf(this.options.handle);
 		this.handles = ((htype == 'array' || htype == 'collection') ? $$(this.options.handle) : document.id(this.options.handle)) || this.element;
 		this.mouse = {'now': {}, 'pos': {}};
 		this.value = {'start': {}, 'now': {}};
 
-		this.selection = (Browser.Engine.trident) ? 'selectstart' : 'mousedown';
+		this.selection = (Browser.ie) ? 'selectstart' : 'mousedown';
+
+
+		if (Browser.ie && !Drag.ondragstartFixed){
+			document.ondragstart = Function.from(false);
+			Drag.ondragstartFixed = true;
+		}
 
 		this.bound = {
 			start: this.start.bind(this),
@@ -670,7 +890,7 @@ var Drag = new Class({
 			drag: this.drag.bind(this),
 			stop: this.stop.bind(this),
 			cancel: this.cancel.bind(this),
-			eventStop: $lambda(false)
+			eventStop: Function.from(false)
 		};
 		this.attach();
 	},
@@ -686,28 +906,56 @@ var Drag = new Class({
 	},
 
 	start: function(event){
+		var options = this.options;
+
 		if (event.rightClick) return;
-		if (this.options.preventDefault) event.preventDefault();
-		if (this.options.stopPropagation) event.stopPropagation();
+
+		if (options.preventDefault) event.preventDefault();
+		if (options.stopPropagation) event.stopPropagation();
 		this.mouse.start = event.page;
+
 		this.fireEvent('beforeStart', this.element);
-		var limit = this.options.limit;
+
+		var limit = options.limit;
 		this.limit = {x: [], y: []};
-		for (var z in this.options.modifiers){
-			if (!this.options.modifiers[z]) continue;
-			if (this.options.style) this.value.now[z] = this.element.getStyle(this.options.modifiers[z]).toInt();
-			else this.value.now[z] = this.element[this.options.modifiers[z]];
-			if (this.options.invert) this.value.now[z] *= -1;
+
+		var styles = this.element.getStyles('left', 'right', 'top', 'bottom');
+		this._invert = {
+			x: options.modifiers.x == 'left' && styles.left == 'auto' && !isNaN(styles.right.toInt()) && (options.modifiers.x = 'right'),
+			y: options.modifiers.y == 'top' && styles.top == 'auto' && !isNaN(styles.bottom.toInt()) && (options.modifiers.y = 'bottom')
+		};
+
+		for (var z in options.modifiers){
+			if (!options.modifiers[z]) continue;
+
+			if (options.style) this.value.now[z] = (this.element.getStyle(options.modifiers[z]) || 0).toInt();
+			else this.value.now[z] = this.element[options.modifiers[z]];
+
+			if (options.invert) this.value.now[z] *= -1;
+			if (this._invert[z]) this.value.now[z] *= -1;
+
 			this.mouse.pos[z] = event.page[z] - this.value.now[z];
+
 			if (limit && limit[z]){
-				for (var i = 2; i--; i){
-					if ($chk(limit[z][i])) this.limit[z][i] = $lambda(limit[z][i])();
+				var i = 2;
+				while (i--){
+					var limitZI = limit[z][i];
+					if (limitZI || limitZI === 0) this.limit[z][i] = (typeof limitZI == 'function') ? limitZI() : limitZI;
 				}
 			}
 		}
-		if ($type(this.options.grid) == 'number') this.options.grid = {x: this.options.grid, y: this.options.grid};
-		this.document.addEvents({mousemove: this.bound.check, mouseup: this.bound.cancel});
-		this.document.addEvent(this.selection, this.bound.eventStop);
+
+		if (typeOf(this.options.grid) == 'number') this.options.grid = {
+			x: this.options.grid,
+			y: this.options.grid
+		};
+
+		var events = {
+			mousemove: this.bound.check,
+			mouseup: this.bound.cancel
+		};
+		events[this.selection] = this.bound.eventStop;
+		this.document.addEvents(events);
 	},
 
 	check: function(event){
@@ -724,32 +972,40 @@ var Drag = new Class({
 	},
 
 	drag: function(event){
-		if (this.options.preventDefault) event.preventDefault();
+		var options = this.options;
+
+		if (options.preventDefault) event.preventDefault();
 		this.mouse.now = event.page;
-		for (var z in this.options.modifiers){
-			if (!this.options.modifiers[z]) continue;
+
+		for (var z in options.modifiers){
+			if (!options.modifiers[z]) continue;
 			this.value.now[z] = this.mouse.now[z] - this.mouse.pos[z];
-			if (this.options.invert) this.value.now[z] *= -1;
-			if (this.options.limit && this.limit[z]){
-				if ($chk(this.limit[z][1]) && (this.value.now[z] > this.limit[z][1])){
+
+			if (options.invert) this.value.now[z] *= -1;
+			if (this._invert[z]) this.value.now[z] *= -1;
+
+			if (options.limit && this.limit[z]){
+				if ((this.limit[z][1] || this.limit[z][1] === 0) && (this.value.now[z] > this.limit[z][1])){
 					this.value.now[z] = this.limit[z][1];
-				} else if ($chk(this.limit[z][0]) && (this.value.now[z] < this.limit[z][0])){
+				} else if ((this.limit[z][0] || this.limit[z][0] === 0) && (this.value.now[z] < this.limit[z][0])){
 					this.value.now[z] = this.limit[z][0];
 				}
 			}
-			if (this.options.grid[z]) this.value.now[z] -= ((this.value.now[z] - (this.limit[z][0]||0)) % this.options.grid[z]);
-			if (this.options.style) {
-				this.element.setStyle(this.options.modifiers[z], this.value.now[z] + this.options.unit);
-			} else {
-				this.element[this.options.modifiers[z]] = this.value.now[z];
-			}
+
+			if (options.grid[z]) this.value.now[z] -= ((this.value.now[z] - (this.limit[z][0]||0)) % options.grid[z]);
+
+			if (options.style) this.element.setStyle(options.modifiers[z], this.value.now[z] + options.unit);
+			else this.element[options.modifiers[z]] = this.value.now[z];
 		}
+
 		this.fireEvent('drag', [this.element, event]);
 	},
 
 	cancel: function(event){
-		this.document.removeEvent('mousemove', this.bound.check);
-		this.document.removeEvent('mouseup', this.bound.cancel);
+		this.document.removeEvents({
+			mousemove: this.bound.check,
+			mouseup: this.bound.cancel
+		});
 		if (event){
 			this.document.removeEvent(this.selection, this.bound.eventStop);
 			this.fireEvent('cancel', this.element);
@@ -757,9 +1013,12 @@ var Drag = new Class({
 	},
 
 	stop: function(event){
-		this.document.removeEvent(this.selection, this.bound.eventStop);
-		this.document.removeEvent('mousemove', this.bound.drag);
-		this.document.removeEvent('mouseup', this.bound.stop);
+		var events = {
+			mousemove: this.bound.drag,
+			mouseup: this.bound.stop
+		};
+		events[this.selection] = this.bound.eventStop;
+		this.document.removeEvents(events);
 		if (event) this.fireEvent('complete', [this.element, event]);
 	}
 
@@ -768,7 +1027,13 @@ var Drag = new Class({
 Element.implement({
 
 	makeResizable: function(options){
-		var drag = new Drag(this, $merge({modifiers: {x: 'width', y: 'height'}}, options));
+		var drag = new Drag(this, Object.merge({
+			modifiers: {
+				x: 'width',
+				y: 'height'
+			}
+		}, options));
+
 		this.store('resizer', drag);
 		return drag.addEvent('drag', function(){
 			this.fireEvent('resize', drag);
@@ -783,20 +1048,22 @@ Element.implement({
 
 script: Drag.Move.js
 
+name: Drag.Move
+
 description: A Drag extension that provides support for the constraining of draggables to containers and droppables.
 
 license: MIT-style license
 
 authors:
-- Valerio Proietti
-- Tom Occhinno
-- Jan Kassens
-- Aaron Newton
-- Scott Kyle
+  - Valerio Proietti
+  - Tom Occhinno
+  - Jan Kassens
+  - Aaron Newton
+  - Scott Kyle
 
 requires:
-- core:1.2.4/Element.Dimensions
-- /Drag
+  - Core/Element.Dimensions
+  - /Drag
 
 provides: [Drag.Move]
 
@@ -808,9 +1075,9 @@ Drag.Move = new Class({
 	Extends: Drag,
 
 	options: {/*
-		onEnter: $empty(thisElement, overed),
-		onLeave: $empty(thisElement, overed),
-		onDrop: $empty(thisElement, overed, event),*/
+		onEnter: function(thisElement, overed){},
+		onLeave: function(thisElement, overed){},
+		onDrop: function(thisElement, overed, event){},*/
 		droppables: [],
 		container: false,
 		precalculate: false,
@@ -821,56 +1088,62 @@ Drag.Move = new Class({
 	initialize: function(element, options){
 		this.parent(element, options);
 		element = this.element;
-		
+
 		this.droppables = $$(this.options.droppables);
 		this.container = document.id(this.options.container);
-		
-		if (this.container && $type(this.container) != 'element')
+
+		if (this.container && typeOf(this.container) != 'element')
 			this.container = document.id(this.container.getDocument().body);
-		
-		var styles = element.getStyles('left', 'top', 'position');
-		if (styles.left == 'auto' || styles.top == 'auto')
-			element.setPosition(element.getPosition(element.getOffsetParent()));
-		
-		if (styles.position == 'static')
-			element.setStyle('position', 'absolute');
+
+		if (this.options.modifiers.x == "left" && this.options.modifiers.y == "top"){
+			var parentStyles,
+				parent = element.getOffsetParent();
+			var styles = element.getStyles('left', 'top');
+			if (parent && styles.left == 'auto' || styles.top == 'auto'){
+				element.setPosition(element.getPosition(parent));
+			}
+		}
+
+		if (element.getStyle('position') == 'static') element.setStyle('position', 'absolute');
 
 		this.addEvent('start', this.checkDroppables, true);
-
 		this.overed = null;
 	},
 
 	start: function(event){
 		if (this.container) this.options.limit = this.calculateLimit();
-		
+
 		if (this.options.precalculate){
 			this.positions = this.droppables.map(function(el){
 				return el.getCoordinates();
 			});
 		}
-		
+
 		this.parent(event);
 	},
-	
+
 	calculateLimit: function(){
-		var offsetParent = this.element.getOffsetParent(),
-			containerCoordinates = this.container.getCoordinates(offsetParent),
-			containerBorder = {},
+		var element = this.element,
+			container = this.container,
+
+			offsetParent = document.id(element.getOffsetParent()) || document.body,
+			containerCoordinates = container.getCoordinates(offsetParent),
 			elementMargin = {},
 			elementBorder = {},
 			containerMargin = {},
+			containerBorder = {},
 			offsetParentPadding = {};
 
 		['top', 'right', 'bottom', 'left'].each(function(pad){
-			containerBorder[pad] = this.container.getStyle('border-' + pad).toInt();
-			elementBorder[pad] = this.element.getStyle('border-' + pad).toInt();
-			elementMargin[pad] = this.element.getStyle('margin-' + pad).toInt();
-			containerMargin[pad] = this.container.getStyle('margin-' + pad).toInt();
+			elementMargin[pad] = element.getStyle('margin-' + pad).toInt();
+			elementBorder[pad] = element.getStyle('border-' + pad).toInt();
+			containerMargin[pad] = container.getStyle('margin-' + pad).toInt();
+			containerBorder[pad] = container.getStyle('border-' + pad).toInt();
 			offsetParentPadding[pad] = offsetParent.getStyle('padding-' + pad).toInt();
 		}, this);
 
-		var width = this.element.offsetWidth + elementMargin.left + elementMargin.right,
-			height = this.element.offsetHeight + elementMargin.top + elementMargin.bottom,
+		var width = element.offsetWidth + elementMargin.left + elementMargin.right,
+			height = element.offsetHeight + elementMargin.top + elementMargin.bottom,
 			left = 0,
 			top = 0,
 			right = containerCoordinates.right - containerBorder.right - width,
@@ -883,48 +1156,47 @@ Drag.Move = new Class({
 			right += elementMargin.right;
 			bottom += elementMargin.bottom;
 		}
-		
-		if (this.element.getStyle('position') == 'relative'){
-			var coords = this.element.getCoordinates(offsetParent);
-			coords.left -= this.element.getStyle('left').toInt();
-			coords.top -= this.element.getStyle('top').toInt();
-			
-			left += containerBorder.left - coords.left;
-			top += containerBorder.top - coords.top;
+
+		if (element.getStyle('position') == 'relative'){
+			var coords = element.getCoordinates(offsetParent);
+			coords.left -= element.getStyle('left').toInt();
+			coords.top -= element.getStyle('top').toInt();
+
+			left -= coords.left;
+			top -= coords.top;
+			if (container.getStyle('position') != 'relative'){
+				left += containerBorder.left;
+				top += containerBorder.top;
+			}
 			right += elementMargin.left - coords.left;
 			bottom += elementMargin.top - coords.top;
-			
-			if (this.container != offsetParent){
+
+			if (container != offsetParent){
 				left += containerMargin.left + offsetParentPadding.left;
-				top += (Browser.Engine.trident4 ? 0 : containerMargin.top) + offsetParentPadding.top;
+				top += ((Browser.ie6 || Browser.ie7) ? 0 : containerMargin.top) + offsetParentPadding.top;
 			}
 		} else {
 			left -= elementMargin.left;
 			top -= elementMargin.top;
-			
-			if (this.container == offsetParent){
-				right -= containerBorder.left;
-				bottom -= containerBorder.top;
-			} else {
+			if (container != offsetParent){
 				left += containerCoordinates.left + containerBorder.left;
 				top += containerCoordinates.top + containerBorder.top;
 			}
 		}
-		
+
 		return {
 			x: [left, right],
 			y: [top, bottom]
 		};
 	},
 
-	checkAgainst: function(el, i){
-		el = (this.positions) ? this.positions[i] : el.getCoordinates();
-		var now = this.mouse.now;
-		return (now.x > el.left && now.x < el.right && now.y < el.bottom && now.y > el.top);
-	},
-
 	checkDroppables: function(){
-		var overed = this.droppables.filter(this.checkAgainst, this).getLast();
+		var overed = this.droppables.filter(function(el, i){
+			el = this.positions ? this.positions[i] : el.getCoordinates();
+			var now = this.mouse.now;
+			return (now.x > el.left && now.x < el.right && now.y < el.bottom && now.y > el.top);
+		}, this).getLast();
+
 		if (this.overed != overed){
 			if (this.overed) this.fireEvent('leave', [this.element, this.overed]);
 			if (overed) this.fireEvent('enter', [this.element, overed]);
@@ -956,70 +1228,3 @@ Element.implement({
 
 });
 
-
-/*
----
-
-script: Date.English.US.js
-
-description: Date messages for US English.
-
-license: MIT-style license
-
-authors:
-- Aaron Newton
-
-requires:
-- /Lang
-- /Date
-
-provides: [Date.English.US]
-
-...
-*/
-
-MooTools.lang.set('en-US', 'Date', {
-
-	months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-	days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-	//culture's date order: MM/DD/YYYY
-	dateOrder: ['month', 'date', 'year'],
-	shortDate: '%m/%d/%Y',
-	shortTime: '%I:%M%p',
-	AM: 'AM',
-	PM: 'PM',
-
-	/* Date.Extras */
-	ordinal: function(dayOfMonth){
-		//1st, 2nd, 3rd, etc.
-		return (dayOfMonth > 3 && dayOfMonth < 21) ? 'th' : ['th', 'st', 'nd', 'rd', 'th'][Math.min(dayOfMonth % 10, 4)];
-	},
-
-	lessThanMinuteAgo: 'less than a minute ago',
-	minuteAgo: 'about a minute ago',
-	minutesAgo: '{delta} minutes ago',
-	hourAgo: 'about an hour ago',
-	hoursAgo: 'about {delta} hours ago',
-	dayAgo: '1 day ago',
-	daysAgo: '{delta} days ago',
-	weekAgo: '1 week ago',
-	weeksAgo: '{delta} weeks ago',
-	monthAgo: '1 month ago',
-	monthsAgo: '{delta} months ago',
-	yearAgo: '1 year ago',
-	yearsAgo: '{delta} years ago',
-	lessThanMinuteUntil: 'less than a minute from now',
-	minuteUntil: 'about a minute from now',
-	minutesUntil: '{delta} minutes from now',
-	hourUntil: 'about an hour from now',
-	hoursUntil: 'about {delta} hours from now',
-	dayUntil: '1 day from now',
-	daysUntil: '{delta} days from now',
-	weekUntil: '1 week from now',
-	weeksUntil: '{delta} weeks from now',
-	monthUntil: '1 month from now',
-	monthsUntil: '{delta} months from now',
-	yearUntil: '1 year from now',
-	yearsUntil: '{delta} years from now'
-
-});

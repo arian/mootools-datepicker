@@ -88,7 +88,7 @@ var DatePicker = new Class({
 		yearsPerPage: 20,
 		allowEmpty: true,
 		animationDuration: 400,
-		useFadeInOut: !Browser.Engine.trident, // dont animate fade-in/fade-out for IE
+		useFadeInOut: !Browser.ie, // dont animate fade-in/fade-out for IE
 		startView: 'month', // allowed values: {time, month, year, decades}
 		positionOffset: {x: 0, y: 0},
 		/*minDate: null, // Date object or a string
@@ -108,28 +108,27 @@ var DatePicker = new Class({
 
 
 		// and some event hooks:
-		onShow: $empty,   // triggered when the datepicker pops up
-		onClose: $empty,  // triggered after the datepicker is closed (destroyed)
-		onSelect: $empty,  // triggered when a date is selected
-		onNext: $empty,  // triggered when changing to next month
-		onPrevious: $empty  // triggered when changing to previous month */
+		onShow: function(){},   // triggered when the datepicker pops up
+		onClose: function(){},  // triggered after the datepicker is closed (destroyed)
+		onSelect: function(){},  // triggered when a date is selected
+		onNext: function(){},  // triggered when changing to next month
+		onPrevious: function(){}  // triggered when changing to previous month */
 	},
 
 	initialize: function(attachTo, options){
 		// Localization
-		var localeGet = MooTools.lang.get;
 		this.setOptions({
-			days: localeGet('Date', 'days'),
-			months: localeGet('Date', 'months'),
-			format: localeGet('Date', 'shortDate'),
-			selectTimeTitle: localeGet('DatePicker', 'select_a_time'),
-			timeConfirmButton: localeGet('DatePicker', 'time_confirm_button')
+			days: Locale.get('Date.days'),
+			months: Locale.get('Date.months'),
+			format: Locale.get('Date.shortDate'),
+			selectTimeTitle: Locale.get('DatePicker.select_a_time'),
+			timeConfirmButton: Locale.get('DatePicker.time_confirm_button')
 		});
 
 		var defaultFormat = this.options.format;
 		this.setOptions(options);
 		if (this.options.timePicker && this.options.format == defaultFormat){
-			var timeFormat = localeGet('Date', 'shortTime');
+			var timeFormat = Locale.get('Date.shortTime');
 			this.options.format = this.options.timePickerOnly ? timeFormat : this.options.format + ' ' + timeFormat;
 		}
 
@@ -157,7 +156,7 @@ var DatePicker = new Class({
 				!(this.elems && this.elems.contains(event.target)) &&
 				this.picker &&
 				event.target != this.picker &&
-				!this.picker.hasChild(event.target)
+				!(this.picker.contains(event.target) && event.target != this.picker)
 			){
 				this.close.call(this);
 			}
@@ -171,7 +170,7 @@ var DatePicker = new Class({
 
 		// toggle the datepicker through a separate element?
 		if (toggle){
-			var togglers = $type(toggle) == 'array' ? toggle : [document.id(toggle)];
+			var togglers = typeOf(toggle) == 'array' ? toggle : [document.id(toggle)];
 			document.addEvent('keydown', function(event){
 				var target = document.id(event.target);
 				if (
@@ -186,7 +185,8 @@ var DatePicker = new Class({
 		}
 
 		// see what is being attached and get an array suitable for it
-		var elems = this.elems = $type(attachTo) == 'array' ? attachTo : [document.id(attachTo)];
+		var elemsType = typeOf(attachTo);
+		var elems = this.elems = elemsType == 'array' || elemsType == 'elements' ? attachTo : [document.id(attachTo)];
 
 		// attach functionality to the inputs
 		elems.each(function(item, index){
@@ -232,7 +232,7 @@ var DatePicker = new Class({
 	},
 
 	detach: function(detach){
-		var elems = $type(detach) == 'array' ? detach : [document.id(detach)];
+		var elems = typeOf(detach) == 'array' ? detach : [document.id(detach)];
 
 		elems.each(function(item){
 			// Only when the datepicker is attached
@@ -291,12 +291,12 @@ var DatePicker = new Class({
 			y: position.top
 		});
 
-		if (this.options.draggable && $type(this.picker.makeDraggable) == 'function'){
+		if (this.options.draggable && typeOf(this.picker.makeDraggable) == 'function'){
 			this.dragger = this.picker.makeDraggable();
 			this.picker.setStyle('cursor', 'move');
 		}
 
-		if (Browser.Engine.trident) this.shim();
+		if (Browser.ie) this.shim();
 
 		return this;
 	},
@@ -457,7 +457,7 @@ var DatePicker = new Class({
 			if (initHours > 23) initHours = 0;
 		}
 
-		new Element('input', { type: 'text', 'class': 'hour', 'title': MooTools.lang.get('DatePicker', 'use_mouse_wheel')})
+		new Element('input', { type: 'text', 'class': 'hour', 'title': Locale.get('DatePicker.use_mouse_wheel')})
 			.set('value', this.leadZero(initHours))
 			.addEvents({
 				click: function(e){
@@ -479,7 +479,7 @@ var DatePicker = new Class({
 			.set('maxlength', 2)
 			.inject(container);
 
-		new Element('input', { type: 'text', 'class': 'minutes', 'title': MooTools.lang.get('DatePicker', 'use_mouse_wheel')})
+		new Element('input', { type: 'text', 'class': 'minutes', 'title': Locale.get('DatePicker.use_mouse_wheel')})
 			.set('value', this.leadZero(initMinutes))
 			.addEvents({
 				click: function(e){
@@ -509,7 +509,7 @@ var DatePicker = new Class({
 			.addEvents({
 				click: function(e){
 					e.stop();
-					this.select($merge(this.d.toObject(), {hours: this.picker.getElement('.hour').get('value').toInt(), minutes: this.picker.getElement('.minutes').get('value').toInt()}));
+					this.select(Object.merge({}, this.d.toObject(), {hours: this.picker.getElement('.hour').get('value').toInt(), minutes: this.picker.getElement('.minutes').get('value').toInt()}));
 				}.bind(this)
 			})
 			.set('maxlength', 2)
@@ -731,7 +731,7 @@ var DatePicker = new Class({
 	},
 
 	select: function(values){
-		this.choice = $merge(this.choice, values);
+		this.choice = Object.merge({}, this.choice, values);
 		var d = Date.fromObject(this.choice);
 		this.input.set('value', d.format(this.options.format))
 			.store('datepicker:value', d.strftime());
@@ -791,19 +791,19 @@ Date.extend({
  * Translation
  *
  */
-MooTools.lang.set('en-US', 'DatePicker', {
+Locale.define('en-US', 'DatePicker', {
 	select_a_time: 'Select a time',
 	use_mouse_wheel: 'Use the mouse wheel to quickly change value',
 	time_confirm_button: 'OK'
 });
 
-MooTools.lang.set('nl-NL', 'DatePicker', {
+Locale.define('nl-NL', 'DatePicker', {
 	select_a_time: 'Selecteer een tijd',
 	use_mouse_wheel: 'Gebruik uw scrollwiel om door de tijd te scrollen',
 	time_confirm_button: 'OK'
 });
 
-MooTools.lang.set('cs-CZ', 'DatePicker', {
+Locale.define('cs-CZ', 'DatePicker', {
 	select_a_time: 'Vyberte čas',
 	use_mouse_wheel: 'Použijte kolečko myši k rychlé změně hodnoty',
 	time_confirm_button: 'Zvolte čas'
