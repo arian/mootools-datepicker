@@ -305,14 +305,17 @@ this.DatePicker = Picker.Date = new Class({
 		this.setTitleEvent(titleEvent);
 	},
 
-	select: function(date){
+	select: function(date,all){
+		var inputs = this.inputs;
+		if (!all && this.input) inputs = [this.input];
+		
 		this.date = date;
-		if (this.inputs.length){
-            this.inputs.each(function(i){
-                i.set('value', date.format(this.options.format))
-				 .store('datepicker:value', date.strftime()) 
-            }, this);
-		}
+		
+        inputs.each(function(i){
+            i.set('value', date.format(this.options.format))
+				.store('datepicker:value', date.strftime()) 
+        }, this);
+		
 		this.fireEvent('select', date);
 		this.close();
 	}
@@ -346,7 +349,6 @@ var renderers = {
 
 		return container;
 	},
-
 	months: function(options, date, currentDate, fn){
 		var today = new Date(),
 			month = today.get('month'),
