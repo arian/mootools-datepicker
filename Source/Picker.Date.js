@@ -307,9 +307,11 @@ this.DatePicker = Picker.Date = new Class({
 
 	select: function(date){
 		this.date = date;
-		if (this.input){
-			this.input.set('value', date.format(this.options.format))
-				.store('datepicker:value', date.strftime())
+		if (this.inputs.length){
+            this.inputs.each(function(i){
+                i.set('value', date.format(this.options.format))
+				 .store('datepicker:value', date.strftime()) 
+            }, this);
 		}
 		this.fireEvent('select', date);
 		this.close();
