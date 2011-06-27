@@ -115,7 +115,10 @@ this.DatePicker = Picker.Date = new Class({
 			}
 			this.date = new Date();
 			if (input){
-				var date = Date.parse(input.get('value'));
+				var date = Date.parse(input.get('value'),options.format);
+				if (date == null){
+					date = Date.parse(input.get('value'));
+				}
 				if (date == null || !date.isValid()){
 					var storeDate = input.retrieve('datepicker:value');
 					if (storeDate) date = Date.parse(storeDate);
