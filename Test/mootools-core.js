@@ -3,10 +3,10 @@
 MooTools: the javascript framework
 
 web build:
- - http://mootools.net/core/1b88678fe598d7ab8e7d33b28e786893
+ - http://mootools.net/core/7c56cfef9dddcf170a5d68e3fb61cfd7
 
 packager build:
- - packager build Core/Core Core/Array Core/String Core/Number Core/Function Core/Object Core/Event Core/Browser Core/Class Core/Class.Extras Core/Slick.Parser Core/Slick.Finder Core/Element Core/Element.Style Core/Element.Event Core/Element.Dimensions Core/Fx Core/Fx.CSS Core/Fx.Tween Core/Fx.Morph Core/Fx.Transitions Core/DOMReady
+ - packager build Core/Core Core/Array Core/String Core/Number Core/Function Core/Object Core/Event Core/Browser Core/Class Core/Class.Extras Core/Slick.Parser Core/Slick.Finder Core/Element Core/Element.Style Core/Element.Event Core/Element.Dimensions Core/Fx Core/Fx.CSS Core/Fx.Tween Core/Fx.Morph Core/Fx.Transitions Core/Request Core/Request.HTML Core/Request.JSON Core/Cookie Core/JSON Core/DOMReady Core/Swiff
 
 /*
 ---
@@ -33,8 +33,8 @@ provides: [Core, MooTools, Type, typeOf, instanceOf, Native]
 (function(){
 
 this.MooTools = {
-	version: '1.3.1',
-	build: 'af48c8d589f43f32212f9bb8ff68a127e6a3ba6c'
+	version: '1.3.2',
+	build: 'c9f1ff10e9e7facb65e9481049ed1b450959d587'
 };
 
 // typeOf, instanceOf
@@ -167,7 +167,7 @@ var Type = this.Type = function(name, object){
 			object.prototype.$family = (function(){
 				return lower;
 			}).hide();
-
+			
 		}
 	}
 
@@ -203,7 +203,7 @@ var implement = function(name, method){
 		if (typeOf(hook) == 'type') implement.call(hook, name, method);
 		else hook.call(this, name, method);
 	}
-
+	
 	var previous = this.prototype[name];
 	if (previous == null || !previous.$protected) this.prototype[name] = method;
 
@@ -398,7 +398,7 @@ String.extend('uniqueID', function(){
 
 
 
-}).call(this);
+})();
 
 
 /*
@@ -419,13 +419,7 @@ provides: Array
 
 Array.implement({
 
-	invoke: function(methodName){
-		var args = Array.slice(arguments, 1);
-		return this.map(function(item){
-			return item[methodName].apply(item, args);
-		});
-	},
-
+	/*<!ES5>*/
 	every: function(fn, bind){
 		for (var i = 0, l = this.length; i < l; i++){
 			if ((i in this) && !fn.call(bind, this[i], i, this)) return false;
@@ -439,12 +433,6 @@ Array.implement({
 			if ((i in this) && fn.call(bind, this[i], i, this)) results.push(this[i]);
 		}
 		return results;
-	},
-
-	clean: function(){
-		return this.filter(function(item){
-			return item != null;
-		});
 	},
 
 	indexOf: function(item, from){
@@ -468,6 +456,20 @@ Array.implement({
 			if ((i in this) && fn.call(bind, this[i], i, this)) return true;
 		}
 		return false;
+	},
+	/*</!ES5>*/
+
+	clean: function(){
+		return this.filter(function(item){
+			return item != null;
+		});
+	},
+
+	invoke: function(methodName){
+		var args = Array.slice(arguments, 1);
+		return this.map(function(item){
+			return item[methodName].apply(item, args);
+		});
 	},
 
 	associate: function(keys){
@@ -744,20 +746,22 @@ Function.implement({
 		try {
 			return this.apply(bind, Array.from(args));
 		} catch (e){}
-
+		
 		return null;
 	},
 
+	/*<!ES5>*/
 	bind: function(bind){
 		var self = this,
 			args = (arguments.length > 1) ? Array.slice(arguments, 1) : null;
-
+		
 		return function(){
 			if (!args && !arguments.length) return self.call(bind);
 			if (args && arguments.length) return self.apply(bind, args.concat(Array.from(arguments)));
 			return self.apply(bind, args || arguments);
 		};
 	},
+	/*</!ES5>*/
 
 	pass: function(args, bind){
 		var self = this;
@@ -806,7 +810,7 @@ Object.extend({
 		var results = {};
 		for (var i = 0, l = keys.length; i < l; i++){
 			var k = keys[i];
-			results[k] = object[k];
+			if (k in object) results[k] = object[k];
 		}
 		return results;
 	},
@@ -821,9 +825,10 @@ Object.extend({
 
 	filter: function(object, fn, bind){
 		var results = {};
-		Object.each(object, function(value, key){
-			if (fn.call(bind, value, key, object)) results[key] = value;
-		});
+		for (var key in object){
+			var value = object[key];
+			if (hasOwnProperty.call(object, key) && fn.call(bind, value, key, object)) results[key] = value;
+		}
 		return results;
 	},
 
@@ -1063,12 +1068,13 @@ Document.mirror(function(name, method){
 });
 
 document.html = document.documentElement;
-document.head = document.getElementsByTagName('head')[0];
+if (!document.head) document.head = document.getElementsByTagName('head')[0];
 
 if (document.execCommand) try {
 	document.execCommand("BackgroundImageCache", false, true);
 } catch (e){}
 
+/*<ltIE9>*/
 if (this.attachEvent && !this.addEventListener){
 	var unloadEvent = function(){
 		this.detachEvent('onunload', unloadEvent);
@@ -1100,10 +1106,11 @@ try {
 		};
 	});
 }
+/*</ltIE9>*/
 
 
 
-}).call(this);
+})();
 
 
 /*
@@ -1353,7 +1360,7 @@ Class.Mutators = {
 	}
 };
 
-}).call(this);
+})();
 
 
 /*
@@ -1407,7 +1414,7 @@ this.Events = new Class({
 	addEvent: function(type, fn, internal){
 		type = removeOn(type);
 
-
+		
 
 		this.$events[type] = (this.$events[type] || []).include(fn);
 		if (internal) fn.internal = true;
@@ -1430,7 +1437,7 @@ this.Events = new Class({
 		}, this);
 		return this;
 	},
-
+	
 	removeEvent: function(type, fn){
 		type = removeOn(type);
 		var events = this.$events[type];
@@ -1474,7 +1481,7 @@ this.Options = new Class({
 
 });
 
-}).call(this);
+})();
 
 
 /*
@@ -1785,7 +1792,7 @@ local.setDocument = function(document){
 
 	var selected, id = 'slick_uniqueid';
 	var testNode = document.createElement('div');
-
+	
 	var testRoot = document.body || document.getElementsByTagName('body')[0] || root;
 	testRoot.appendChild(testNode);
 
@@ -1836,7 +1843,7 @@ local.setDocument = function(document){
 
 			features.brokenGEBCN = cachedGetElementsByClassName || brokenSecondClassNameGEBCN;
 		}
-
+		
 		if (testNode.querySelectorAll){
 			// IE 8 returns closed nodes (EG:"</foo>") for querySelectorAll('*') for some documents
 			try {
@@ -1962,7 +1969,7 @@ var reSimpleSelector = /^([#.]?)((?:[\w-]+|\*))$/,
 local.search = function(context, expression, append, first){
 
 	var found = this.found = (first) ? null : (append || []);
-
+	
 	if (!context) return found;
 	else if (context.navigator) context = context.document; // Convert the node from a window to a document
 	else if (!context.nodeType) return found;
@@ -2040,17 +2047,28 @@ local.search = function(context, expression, append, first){
 		/*<query-selector-override>*/
 		querySelector: if (context.querySelectorAll) {
 
-			if (!this.isHTMLDocument || this.brokenMixedCaseQSA || qsaFailExpCache[expression] ||
-			(this.brokenCheckedQSA && expression.indexOf(':checked') > -1) ||
-			(this.brokenEmptyAttributeQSA && reEmptyAttribute.test(expression)) || Slick.disableQSA) break querySelector;
+			if (!this.isHTMLDocument
+				|| qsaFailExpCache[expression]
+				//TODO: only skip when expression is actually mixed case
+				|| this.brokenMixedCaseQSA
+				|| (this.brokenCheckedQSA && expression.indexOf(':checked') > -1)
+				|| (this.brokenEmptyAttributeQSA && reEmptyAttribute.test(expression))
+				|| (!contextIsDocument //Abort when !contextIsDocument and...
+					//  there are multiple expressions in the selector
+					//  since we currently only fix non-document rooted QSA for single expression selectors
+					&& expression.indexOf(',') > -1
+				)
+				|| Slick.disableQSA
+			) break querySelector;
 
-			var _expression = expression;
+			var _expression = expression, _context = context;
 			if (!contextIsDocument){
 				// non-document rooted QSA
 				// credits to Andrew Dupont
-				var currentId = context.getAttribute('id'), slickid = 'slickid__';
-				context.setAttribute('id', slickid);
+				var currentId = _context.getAttribute('id'), slickid = 'slickid__';
+				_context.setAttribute('id', slickid);
 				_expression = '#' + slickid + ' ' + _expression;
+				context = _context.parentNode;
 			}
 
 			try {
@@ -2061,8 +2079,9 @@ local.search = function(context, expression, append, first){
 				break querySelector;
 			} finally {
 				if (!contextIsDocument){
-					if (currentId) context.setAttribute('id', currentId);
-					else context.removeAttribute('id');
+					if (currentId) _context.setAttribute('id', currentId);
+					else _context.removeAttribute('id');
+					context = _context;
 				}
 			}
 
@@ -2256,7 +2275,7 @@ local.matchNode = function(node, selector){
 			return this.nativeMatchesSelector.call(node, selector.replace(/\[([^=]+)=\s*([^'"\]]+?)\s*\]/g, '[$1="$2"]'));
 		} catch(matchError) {}
 	}
-
+	
 	var parsed = this.Slick.parse(selector);
 	if (!parsed) return true;
 
@@ -2335,7 +2354,7 @@ var combinators = {
 							this.push(item, tag, null, classes, attributes, pseudos);
 							break;
 						}
-					}
+					} 
 					return;
 				}
 				if (!item){
@@ -2544,7 +2563,7 @@ var pseudos = {
 	'root': function(node){
 		return (node === this.root);
 	},
-
+	
 	'selected': function(node){
 		return node.selected;
 	}
@@ -2573,7 +2592,7 @@ local.attributeGetters = {
 	'style': function(){
 		return (this.style) ? this.style.cssText : this.getAttribute('style');
 	},
-
+	
 	'tabindex': function(){
 		var attributeNode = this.getAttributeNode('tabindex');
 		return (attributeNode && attributeNode.specified) ? attributeNode.nodeValue : null;
@@ -2700,8 +2719,10 @@ var Element = function(tag, props){
 		var attributes = parsed.attributes;
 		if (attributes) for (var i = 0, l = attributes.length; i < l; i++){
 			var attr = attributes[i];
-			if (attr.value != null && attr.operator == '=' && props[attr.key] == null)
-				props[attr.key] = attr.value;
+			if (props[attr.key] != null) continue;
+
+			if (attr.value != null && attr.operator == '=') props[attr.key] = attr.value;
+			else if (!attr.value && !attr.operator) props[attr.key] = true;
 		}
 
 		if (parsed.classList && props['class'] == null) props['class'] = parsed.classList.join(' ');
@@ -3358,11 +3379,12 @@ if (!document.createElement('div').contains) Element.implement(contains);
 
 });
 
-// IE purge
+/*<ltIE9>*/
 if (window.attachEvent && !window.addEventListener) window.addListener('unload', function(){
 	Object.each(collected, clean);
 	if (window.CollectGarbage) CollectGarbage();
 });
+/*</ltIE9>*/
 
 })();
 
@@ -3394,6 +3416,7 @@ Element.Properties.tag = {
 
 };
 
+/*<ltIE9>*/
 (function(maxLength){
 	if (maxLength != null) Element.Properties.maxlength = Element.Properties.maxLength = {
 		get: function(){
@@ -3402,7 +3425,9 @@ Element.Properties.tag = {
 		}
 	};
 })(document.createElement('input').getAttribute('maxLength'));
+/*</ltIE9>*/
 
+/*<!webkit>*/
 Element.Properties.html = (function(){
 
 	var tableTest = Function.attempt(function(){
@@ -3439,6 +3464,7 @@ Element.Properties.html = (function(){
 
 	return html;
 })();
+/*</!webkit>*/
 
 
 /*
@@ -3473,7 +3499,8 @@ var setOpacity = function(element, opacity){
 	if (hasOpacity){
 		element.style.opacity = opacity;
 	} else {
-		opacity = (opacity == 1) ? '' : 'alpha(opacity=' + opacity * 100 + ')';
+		opacity = (opacity * 100).limit(0, 100).round();
+		opacity = (opacity == 100) ? '' : 'alpha(opacity=' + opacity + ')';
 		var filter = element.style.filter || element.getComputedStyle('filter') || '';
 		element.style.filter = reAlpha.test(filter) ? filter.replace(reAlpha, opacity) : filter + opacity;
 	}
@@ -3619,7 +3646,7 @@ Element.ShortStyles = {margin: {}, padding: {}, border: {}, borderWidth: {}, bor
 	Short.borderColor[bdc] = Short[bd][bdc] = All[bdc] = 'rgb(@, @, @)';
 });
 
-}).call(this);
+})();
 
 
 /*
@@ -3792,7 +3819,7 @@ Element.Events = {
 
 
 
-}).call(this);
+})();
 
 
 /*
@@ -3941,7 +3968,7 @@ Element.implement({
 			x: offset.x - scroll.x,
 			y: offset.y - scroll.y
 		};
-
+		
 		if (relative && (relative = document.id(relative))){
 			var relativePosition = relative.getPosition();
 			return {x: position.x - relativePosition.x - leftBorder(relative), y: position.y - relativePosition.y - topBorder(relative)};
@@ -4038,7 +4065,7 @@ function getCompatElement(element){
 	return (!doc.compatMode || doc.compatMode == 'CSS1Compat') ? doc.html : doc.body;
 }
 
-}).call(this);
+})();
 
 //aliases
 Element.alias({position: 'setPosition'}); //compatability
@@ -4135,7 +4162,7 @@ var Fx = this.Fx = new Class({
 		} else {
 			this.frame++;
 		}
-
+		
 		if (this.frame < this.frames){
 			var delta = this.transition(this.frame / this.frames);
 			this.set(this.compute(this.from, this.to, delta));
@@ -4178,7 +4205,7 @@ var Fx = this.Fx = new Class({
 		pushInstance.call(this, fps);
 		return this;
 	},
-
+	
 	stop: function(){
 		if (this.isRunning()){
 			this.time = null;
@@ -4192,7 +4219,7 @@ var Fx = this.Fx = new Class({
 		}
 		return this;
 	},
-
+	
 	cancel: function(){
 		if (this.isRunning()){
 			this.time = null;
@@ -4202,7 +4229,7 @@ var Fx = this.Fx = new Class({
 		}
 		return this;
 	},
-
+	
 	pause: function(){
 		if (this.isRunning()){
 			this.time = null;
@@ -4210,12 +4237,12 @@ var Fx = this.Fx = new Class({
 		}
 		return this;
 	},
-
+	
 	resume: function(){
 		if ((this.frame < this.frames) && !this.isRunning()) pushInstance.call(this, this.options.fps);
 		return this;
 	},
-
+	
 	isRunning: function(){
 		var list = instances[this.options.fps];
 		return list && list.contains(this);
@@ -4258,7 +4285,7 @@ var pullInstance = function(fps){
 	}
 };
 
-}).call(this);
+})();
 
 
 /*
@@ -4706,6 +4733,568 @@ Fx.Transitions.extend({
 /*
 ---
 
+name: Request
+
+description: Powerful all purpose Request Class. Uses XMLHTTPRequest.
+
+license: MIT-style license.
+
+requires: [Object, Element, Chain, Events, Options, Browser]
+
+provides: Request
+
+...
+*/
+
+(function(){
+
+var empty = function(){},
+	progressSupport = ('onprogress' in new Browser.Request);
+
+var Request = this.Request = new Class({
+
+	Implements: [Chain, Events, Options],
+
+	options: {/*
+		onRequest: function(){},
+		onLoadstart: function(event, xhr){},
+		onProgress: function(event, xhr){},
+		onComplete: function(){},
+		onCancel: function(){},
+		onSuccess: function(responseText, responseXML){},
+		onFailure: function(xhr){},
+		onException: function(headerName, value){},
+		onTimeout: function(){},
+		user: '',
+		password: '',*/
+		url: '',
+		data: '',
+		headers: {
+			'X-Requested-With': 'XMLHttpRequest',
+			'Accept': 'text/javascript, text/html, application/xml, text/xml, */*'
+		},
+		async: true,
+		format: false,
+		method: 'post',
+		link: 'ignore',
+		isSuccess: null,
+		emulation: true,
+		urlEncoded: true,
+		encoding: 'utf-8',
+		evalScripts: false,
+		evalResponse: false,
+		timeout: 0,
+		noCache: false
+	},
+
+	initialize: function(options){
+		this.xhr = new Browser.Request();
+		this.setOptions(options);
+		this.headers = this.options.headers;
+	},
+
+	onStateChange: function(){
+		var xhr = this.xhr;
+		if (xhr.readyState != 4 || !this.running) return;
+		this.running = false;
+		this.status = 0;
+		Function.attempt(function(){
+			var status = xhr.status;
+			this.status = (status == 1223) ? 204 : status;
+		}.bind(this));
+		xhr.onreadystatechange = empty;
+		if (progressSupport) xhr.onprogress = xhr.onloadstart = empty;
+		clearTimeout(this.timer);
+		
+		this.response = {text: this.xhr.responseText || '', xml: this.xhr.responseXML};
+		if (this.options.isSuccess.call(this, this.status))
+			this.success(this.response.text, this.response.xml);
+		else
+			this.failure();
+	},
+
+	isSuccess: function(){
+		var status = this.status;
+		return (status >= 200 && status < 300);
+	},
+
+	isRunning: function(){
+		return !!this.running;
+	},
+
+	processScripts: function(text){
+		if (this.options.evalResponse || (/(ecma|java)script/).test(this.getHeader('Content-type'))) return Browser.exec(text);
+		return text.stripScripts(this.options.evalScripts);
+	},
+
+	success: function(text, xml){
+		this.onSuccess(this.processScripts(text), xml);
+	},
+
+	onSuccess: function(){
+		this.fireEvent('complete', arguments).fireEvent('success', arguments).callChain();
+	},
+
+	failure: function(){
+		this.onFailure();
+	},
+
+	onFailure: function(){
+		this.fireEvent('complete').fireEvent('failure', this.xhr);
+	},
+	
+	loadstart: function(event){
+		this.fireEvent('loadstart', [event, this.xhr]);
+	},
+	
+	progress: function(event){
+		this.fireEvent('progress', [event, this.xhr]);
+	},
+	
+	timeout: function(){
+		this.fireEvent('timeout', this.xhr);
+	},
+
+	setHeader: function(name, value){
+		this.headers[name] = value;
+		return this;
+	},
+
+	getHeader: function(name){
+		return Function.attempt(function(){
+			return this.xhr.getResponseHeader(name);
+		}.bind(this));
+	},
+
+	check: function(){
+		if (!this.running) return true;
+		switch (this.options.link){
+			case 'cancel': this.cancel(); return true;
+			case 'chain': this.chain(this.caller.pass(arguments, this)); return false;
+		}
+		return false;
+	},
+	
+	send: function(options){
+		if (!this.check(options)) return this;
+
+		this.options.isSuccess = this.options.isSuccess || this.isSuccess;
+		this.running = true;
+
+		var type = typeOf(options);
+		if (type == 'string' || type == 'element') options = {data: options};
+
+		var old = this.options;
+		options = Object.append({data: old.data, url: old.url, method: old.method}, options);
+		var data = options.data, url = String(options.url), method = options.method.toLowerCase();
+
+		switch (typeOf(data)){
+			case 'element': data = document.id(data).toQueryString(); break;
+			case 'object': case 'hash': data = Object.toQueryString(data);
+		}
+
+		if (this.options.format){
+			var format = 'format=' + this.options.format;
+			data = (data) ? format + '&' + data : format;
+		}
+
+		if (this.options.emulation && !['get', 'post'].contains(method)){
+			var _method = '_method=' + method;
+			data = (data) ? _method + '&' + data : _method;
+			method = 'post';
+		}
+
+		if (this.options.urlEncoded && ['post', 'put'].contains(method)){
+			var encoding = (this.options.encoding) ? '; charset=' + this.options.encoding : '';
+			this.headers['Content-type'] = 'application/x-www-form-urlencoded' + encoding;
+		}
+
+		if (!url) url = document.location.pathname;
+		
+		var trimPosition = url.lastIndexOf('/');
+		if (trimPosition > -1 && (trimPosition = url.indexOf('#')) > -1) url = url.substr(0, trimPosition);
+
+		if (this.options.noCache)
+			url += (url.contains('?') ? '&' : '?') + String.uniqueID();
+
+		if (data && method == 'get'){
+			url += (url.contains('?') ? '&' : '?') + data;
+			data = null;
+		}
+
+		var xhr = this.xhr;
+		if (progressSupport){
+			xhr.onloadstart = this.loadstart.bind(this);
+			xhr.onprogress = this.progress.bind(this);
+		}
+
+		xhr.open(method.toUpperCase(), url, this.options.async, this.options.user, this.options.password);
+		if (this.options.user && 'withCredentials' in xhr) xhr.withCredentials = true;
+		
+		xhr.onreadystatechange = this.onStateChange.bind(this);
+
+		Object.each(this.headers, function(value, key){
+			try {
+				xhr.setRequestHeader(key, value);
+			} catch (e){
+				this.fireEvent('exception', [key, value]);
+			}
+		}, this);
+
+		this.fireEvent('request');
+		xhr.send(data);
+		if (!this.options.async) this.onStateChange();
+		if (this.options.timeout) this.timer = this.timeout.delay(this.options.timeout, this);
+		return this;
+	},
+
+	cancel: function(){
+		if (!this.running) return this;
+		this.running = false;
+		var xhr = this.xhr;
+		xhr.abort();
+		clearTimeout(this.timer);
+		xhr.onreadystatechange = empty;
+		if (progressSupport) xhr.onprogress = xhr.onloadstart = empty;
+		this.xhr = new Browser.Request();
+		this.fireEvent('cancel');
+		return this;
+	}
+
+});
+
+var methods = {};
+['get', 'post', 'put', 'delete', 'GET', 'POST', 'PUT', 'DELETE'].each(function(method){
+	methods[method] = function(data){
+		var object = {
+			method: method
+		};
+		if (data != null) object.data = data;
+		return this.send(object);
+	};
+});
+
+Request.implement(methods);
+
+Element.Properties.send = {
+
+	set: function(options){
+		var send = this.get('send').cancel();
+		send.setOptions(options);
+		return this;
+	},
+
+	get: function(){
+		var send = this.retrieve('send');
+		if (!send){
+			send = new Request({
+				data: this, link: 'cancel', method: this.get('method') || 'post', url: this.get('action')
+			});
+			this.store('send', send);
+		}
+		return send;
+	}
+
+};
+
+Element.implement({
+
+	send: function(url){
+		var sender = this.get('send');
+		sender.send({data: this, url: url || sender.options.url});
+		return this;
+	}
+
+});
+
+})();
+
+/*
+---
+
+name: Request.HTML
+
+description: Extends the basic Request Class with additional methods for interacting with HTML responses.
+
+license: MIT-style license.
+
+requires: [Element, Request]
+
+provides: Request.HTML
+
+...
+*/
+
+Request.HTML = new Class({
+
+	Extends: Request,
+
+	options: {
+		update: false,
+		append: false,
+		evalScripts: true,
+		filter: false,
+		headers: {
+			Accept: 'text/html, application/xml, text/xml, */*'
+		}
+	},
+
+	success: function(text){
+		var options = this.options, response = this.response;
+
+		response.html = text.stripScripts(function(script){
+			response.javascript = script;
+		});
+
+		var match = response.html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+		if (match) response.html = match[1];
+		var temp = new Element('div').set('html', response.html);
+
+		response.tree = temp.childNodes;
+		response.elements = temp.getElements('*');
+
+		if (options.filter) response.tree = response.elements.filter(options.filter);
+		if (options.update) document.id(options.update).empty().set('html', response.html);
+		else if (options.append) document.id(options.append).adopt(temp.getChildren());
+		if (options.evalScripts) Browser.exec(response.javascript);
+
+		this.onSuccess(response.tree, response.elements, response.html, response.javascript);
+	}
+
+});
+
+Element.Properties.load = {
+
+	set: function(options){
+		var load = this.get('load').cancel();
+		load.setOptions(options);
+		return this;
+	},
+
+	get: function(){
+		var load = this.retrieve('load');
+		if (!load){
+			load = new Request.HTML({data: this, link: 'cancel', update: this, method: 'get'});
+			this.store('load', load);
+		}
+		return load;
+	}
+
+};
+
+Element.implement({
+
+	load: function(){
+		this.get('load').send(Array.link(arguments, {data: Type.isObject, url: Type.isString}));
+		return this;
+	}
+
+});
+
+
+/*
+---
+
+name: JSON
+
+description: JSON encoder and decoder.
+
+license: MIT-style license.
+
+See Also: <http://www.json.org/>
+
+requires: [Array, String, Number, Function]
+
+provides: JSON
+
+...
+*/
+
+if (typeof JSON == 'undefined') this.JSON = {};
+
+
+
+(function(){
+
+var special = {'\b': '\\b', '\t': '\\t', '\n': '\\n', '\f': '\\f', '\r': '\\r', '"' : '\\"', '\\': '\\\\'};
+
+var escape = function(chr){
+	return special[chr] || '\\u' + ('0000' + chr.charCodeAt(0).toString(16)).slice(-4);
+};
+
+JSON.validate = function(string){
+	string = string.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').
+					replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+					replace(/(?:^|:|,)(?:\s*\[)+/g, '');
+
+	return (/^[\],:{}\s]*$/).test(string);
+};
+
+JSON.encode = JSON.stringify ? function(obj){
+	return JSON.stringify(obj);
+} : function(obj){
+	if (obj && obj.toJSON) obj = obj.toJSON();
+
+	switch (typeOf(obj)){
+		case 'string':
+			return '"' + obj.replace(/[\x00-\x1f\\"]/g, escape) + '"';
+		case 'array':
+			return '[' + obj.map(JSON.encode).clean() + ']';
+		case 'object': case 'hash':
+			var string = [];
+			Object.each(obj, function(value, key){
+				var json = JSON.encode(value);
+				if (json) string.push(JSON.encode(key) + ':' + json);
+			});
+			return '{' + string + '}';
+		case 'number': case 'boolean': return '' + obj;
+		case 'null': return 'null';
+	}
+
+	return null;
+};
+
+JSON.decode = function(string, secure){
+	if (!string || typeOf(string) != 'string') return null;
+
+	if (secure || JSON.secure){
+		if (JSON.parse) return JSON.parse(string);
+		if (!JSON.validate(string)) throw new Error('JSON could not decode the input; security is enabled and the value is not secure.');
+	}
+
+	return eval('(' + string + ')');
+};
+
+})();
+
+
+/*
+---
+
+name: Request.JSON
+
+description: Extends the basic Request Class with additional methods for sending and receiving JSON data.
+
+license: MIT-style license.
+
+requires: [Request, JSON]
+
+provides: Request.JSON
+
+...
+*/
+
+Request.JSON = new Class({
+
+	Extends: Request,
+
+	options: {
+		/*onError: function(text, error){},*/
+		secure: true
+	},
+
+	initialize: function(options){
+		this.parent(options);
+		Object.append(this.headers, {
+			'Accept': 'application/json',
+			'X-Request': 'JSON'
+		});
+	},
+
+	success: function(text){
+		var json;
+		try {
+			json = this.response.json = JSON.decode(text, this.options.secure);
+		} catch (error){
+			this.fireEvent('error', [text, error]);
+			return;
+		}
+		if (json == null) this.onFailure();
+		else this.onSuccess(json, text);
+	}
+
+});
+
+
+/*
+---
+
+name: Cookie
+
+description: Class for creating, reading, and deleting browser Cookies.
+
+license: MIT-style license.
+
+credits:
+  - Based on the functions by Peter-Paul Koch (http://quirksmode.org).
+
+requires: [Options, Browser]
+
+provides: Cookie
+
+...
+*/
+
+var Cookie = new Class({
+
+	Implements: Options,
+
+	options: {
+		path: '/',
+		domain: false,
+		duration: false,
+		secure: false,
+		document: document,
+		encode: true
+	},
+
+	initialize: function(key, options){
+		this.key = key;
+		this.setOptions(options);
+	},
+
+	write: function(value){
+		if (this.options.encode) value = encodeURIComponent(value);
+		if (this.options.domain) value += '; domain=' + this.options.domain;
+		if (this.options.path) value += '; path=' + this.options.path;
+		if (this.options.duration){
+			var date = new Date();
+			date.setTime(date.getTime() + this.options.duration * 24 * 60 * 60 * 1000);
+			value += '; expires=' + date.toGMTString();
+		}
+		if (this.options.secure) value += '; secure';
+		this.options.document.cookie = this.key + '=' + value;
+		return this;
+	},
+
+	read: function(){
+		var value = this.options.document.cookie.match('(?:^|;)\\s*' + this.key.escapeRegExp() + '=([^;]*)');
+		return (value) ? decodeURIComponent(value[1]) : null;
+	},
+
+	dispose: function(){
+		new Cookie(this.key, Object.merge({}, this.options, {duration: -1})).write('');
+		return this;
+	}
+
+});
+
+Cookie.write = function(key, value, options){
+	return new Cookie(key, options).write(value);
+};
+
+Cookie.read = function(key){
+	return new Cookie(key).read();
+};
+
+Cookie.dispose = function(key, options){
+	return new Cookie(key, options).dispose();
+};
+
+
+/*
+---
+
 name: DOMReady
 
 description: Contains the custom event domready.
@@ -4726,19 +5315,14 @@ var ready,
 	checks = [],
 	shouldPoll,
 	timer,
-	isFramed = true;
-
-// Thanks to Rich Dougherty <http://www.richdougherty.com/>
-try {
-	isFramed = window.frameElement != null;
-} catch(e){}
+	testElement = document.createElement('div');
 
 var domready = function(){
 	clearTimeout(timer);
 	if (ready) return;
 	Browser.loaded = ready = true;
 	document.removeListener('DOMContentLoaded', domready).removeListener('readystatechange', check);
-
+	
 	document.fireEvent('domready');
 	window.fireEvent('domready');
 };
@@ -4748,7 +5332,6 @@ var check = function(){
 		domready();
 		return true;
 	}
-
 	return false;
 };
 
@@ -4759,19 +5342,23 @@ var poll = function(){
 
 document.addListener('DOMContentLoaded', domready);
 
+/*<ltIE8>*/
 // doScroll technique by Diego Perini http://javascript.nwbox.com/IEContentLoaded/
-var testElement = document.createElement('div');
-if (testElement.doScroll && !isFramed){
-	checks.push(function(){
-		try {
-			testElement.doScroll();
-			return true;
-		} catch (e){}
-
-		return false;
-	});
+// testElement.doScroll() throws when the DOM is not ready, only in the top window
+var doScrollWorks = function(){
+	try {
+		testElement.doScroll();
+		return true;
+	} catch (e){}
+	return false;
+}
+// If doScroll works already, it can't be used to determine domready
+//   e.g. in an iframe
+if (testElement.doScroll && !doScrollWorks()){
+	checks.push(doScrollWorks);
 	shouldPoll = true;
 }
+/*</ltIE8>*/
 
 if (document.readyState) checks.push(function(){
 	var state = document.readyState;
@@ -4800,7 +5387,6 @@ Element.Events.load = {
 			domready();
 			delete Element.Events.load;
 		}
-
 		return true;
 	}
 };
@@ -4811,3 +5397,119 @@ window.addEvent('load', function(){
 });
 
 })(window, document);
+
+
+/*
+---
+
+name: Swiff
+
+description: Wrapper for embedding SWF movies. Supports External Interface Communication.
+
+license: MIT-style license.
+
+credits:
+  - Flash detection & Internet Explorer + Flash Player 9 fix inspired by SWFObject.
+
+requires: [Options, Object, Element]
+
+provides: Swiff
+
+...
+*/
+
+(function(){
+
+var Swiff = this.Swiff = new Class({
+
+	Implements: Options,
+
+	options: {
+		id: null,
+		height: 1,
+		width: 1,
+		container: null,
+		properties: {},
+		params: {
+			quality: 'high',
+			allowScriptAccess: 'always',
+			wMode: 'window',
+			swLiveConnect: true
+		},
+		callBacks: {},
+		vars: {}
+	},
+
+	toElement: function(){
+		return this.object;
+	},
+
+	initialize: function(path, options){
+		this.instance = 'Swiff_' + String.uniqueID();
+
+		this.setOptions(options);
+		options = this.options;
+		var id = this.id = options.id || this.instance;
+		var container = document.id(options.container);
+
+		Swiff.CallBacks[this.instance] = {};
+
+		var params = options.params, vars = options.vars, callBacks = options.callBacks;
+		var properties = Object.append({height: options.height, width: options.width}, options.properties);
+
+		var self = this;
+
+		for (var callBack in callBacks){
+			Swiff.CallBacks[this.instance][callBack] = (function(option){
+				return function(){
+					return option.apply(self.object, arguments);
+				};
+			})(callBacks[callBack]);
+			vars[callBack] = 'Swiff.CallBacks.' + this.instance + '.' + callBack;
+		}
+
+		params.flashVars = Object.toQueryString(vars);
+		if (Browser.ie){
+			properties.classid = 'clsid:D27CDB6E-AE6D-11cf-96B8-444553540000';
+			params.movie = path;
+		} else {
+			properties.type = 'application/x-shockwave-flash';
+		}
+		properties.data = path;
+
+		var build = '<object id="' + id + '"';
+		for (var property in properties) build += ' ' + property + '="' + properties[property] + '"';
+		build += '>';
+		for (var param in params){
+			if (params[param]) build += '<param name="' + param + '" value="' + params[param] + '" />';
+		}
+		build += '</object>';
+		this.object = ((container) ? container.empty() : new Element('div')).set('html', build).firstChild;
+	},
+
+	replaces: function(element){
+		element = document.id(element, true);
+		element.parentNode.replaceChild(this.toElement(), element);
+		return this;
+	},
+
+	inject: function(element){
+		document.id(element, true).appendChild(this.toElement());
+		return this;
+	},
+
+	remote: function(){
+		return Swiff.remote.apply(Swiff, [this.toElement()].append(arguments));
+	}
+
+});
+
+Swiff.CallBacks = {};
+
+Swiff.remote = function(obj, fn){
+	var rs = obj.CallFunction('<invoke name="' + fn + '" returntype="javascript">' + __flash__argumentsToXML(arguments, 2) + '</invoke>');
+	return eval(rs);
+};
+
+})();
+
