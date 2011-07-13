@@ -1,6 +1,6 @@
 // MooTools: the javascript framework.
-// Load this file's selection again by visiting: http://mootools.net/more/ea71e7d3aab3551fe45865dbb054a052
-// Or build this file again with packager using: packager build More/Date More/Drag More/Drag.Move More/IframeShim
+// Load this file's selection again by visiting: http://mootools.net/more/f250abfd61beb6937b7a17bb86c2c869 
+// Or build this file again with packager using: packager build More/More More/Class.Occlude More/Array.Extras More/Date More/Element.Measure More/Element.Position More/Drag More/Drag.Move More/IframeShim More/Locale More/Locale.en-US.Date
 /*
 ---
 
@@ -20,6 +20,7 @@ authors:
   - Tim Wienk
   - Christoph Pojer
   - Aaron Newton
+  - Jacob Thornton
 
 requires:
   - Core/MooTools
@@ -30,9 +31,130 @@ provides: [MooTools.More]
 */
 
 MooTools.More = {
-	'version': '1.3.1.1',
-	'build': '0292a3af1eea242b817fecf9daa127417d10d4ce'
+	'version': '1.3.2.1',
+	'build': 'e586bcd2496e9b22acfde32e12f84d49ce09e59d'
 };
+
+
+/*
+---
+
+script: Class.Occlude.js
+
+name: Class.Occlude
+
+description: Prevents a class from being applied to a DOM element twice.
+
+license: MIT-style license.
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Class
+  - Core/Element
+  - /MooTools.More
+
+provides: [Class.Occlude]
+
+...
+*/
+
+Class.Occlude = new Class({
+
+	occlude: function(property, element){
+		element = document.id(element || this.element);
+		var instance = element.retrieve(property || this.property);
+		if (instance && !this.occluded)
+			return (this.occluded = instance);
+
+		this.occluded = false;
+		element.store(property || this.property, this);
+		return this.occluded;
+	}
+
+});
+
+
+/*
+---
+
+script: Array.Extras.js
+
+name: Array.Extras
+
+description: Extends the Array native object to include useful methods to work with arrays.
+
+license: MIT-style license
+
+authors:
+  - Christoph Pojer
+  - Sebastian Markbåge
+
+requires:
+  - Core/Array
+  - MooTools.More
+
+provides: [Array.Extras]
+
+...
+*/
+
+(function(nil){
+
+Array.implement({
+
+	min: function(){
+		return Math.min.apply(null, this);
+	},
+
+	max: function(){
+		return Math.max.apply(null, this);
+	},
+
+	average: function(){
+		return this.length ? this.sum() / this.length : 0;
+	},
+
+	sum: function(){
+		var result = 0, l = this.length;
+		if (l){
+			while (l--) result += this[l];
+		}
+		return result;
+	},
+
+	unique: function(){
+		return [].combine(this);
+	},
+
+	shuffle: function(){
+		for (var i = this.length; i && --i;){
+			var temp = this[i], r = Math.floor(Math.random() * ( i + 1 ));
+			this[i] = this[r];
+			this[r] = temp;
+		}
+		return this;
+	},
+
+	reduce: function(fn, value){
+		for (var i = 0, l = this.length; i < l; i++){
+			if (i in this) value = value === nil ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
+	},
+
+	reduceRight: function(fn, value){
+		var i = this.length;
+		while (i--){
+			if (i in this) value = value === nil ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
+	}
+
+});
+
+})();
 
 
 /*
@@ -100,7 +222,7 @@ Object.extend({
 
 });
 
-}).call(this);
+})();
 
 
 /*
@@ -154,7 +276,9 @@ var Locale = this.Locale = {
 
 		if (set) locale.define(set, key, value);
 
-
+		/*<1.2compat>*/
+		if (set == 'cascade') return Locale.inherit(name, key);
+		/*</1.2compat>*/
 
 		if (!current) current = locale;
 
@@ -169,7 +293,9 @@ var Locale = this.Locale = {
 
 			this.fireEvent('change', locale);
 
-
+			/*<1.2compat>*/
+			this.fireEvent('langChange', locale.name);
+			/*</1.2compat>*/
 		}
 
 		return this;
@@ -266,9 +392,27 @@ Locale.Set = new Class({
 
 });
 
+/*<1.2compat>*/
+var lang = MooTools.lang = {};
 
+Object.append(lang, Locale, {
+	setLanguage: Locale.use,
+	getCurrentLanguage: function(){
+		var current = Locale.getCurrent();
+		return (current) ? current.name : null;
+	},
+	set: function(){
+		Locale.define.apply(this, arguments);
+		return this;
+	},
+	get: function(set, key, args){
+		if (key) set += '.' + key;
+		return Locale.get(set, args);
+	}
+});
+/*</1.2compat>*/
 
-}).call(this);
+})();
 
 
 /*
@@ -757,7 +901,9 @@ Date.extend({
 		return this;
 	},
 
-
+	//<1.2compat>
+	parsePatterns: parsePatterns,
+	//</1.2compat>
 
 	defineParser: function(pattern){
 		parsePatterns.push((pattern.re && pattern.handler) ? pattern : build(pattern));
@@ -907,7 +1053,416 @@ Locale.addEvent('change', function(language){
 	if (Locale.get('Date')) recompile(language);
 }).fireEvent('change', Locale.getCurrent());
 
-}).call(this);
+})();
+
+
+/*
+---
+
+script: Element.Measure.js
+
+name: Element.Measure
+
+description: Extends the Element native object to include methods useful in measuring dimensions.
+
+credits: "Element.measure / .expose methods by Daniel Steigerwald License: MIT-style license. Copyright: Copyright (c) 2008 Daniel Steigerwald, daniel.steigerwald.cz"
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Element.Style
+  - Core/Element.Dimensions
+  - /MooTools.More
+
+provides: [Element.Measure]
+
+...
+*/
+
+(function(){
+
+var getStylesList = function(styles, planes){
+	var list = [];
+	Object.each(planes, function(directions){
+		Object.each(directions, function(edge){
+			styles.each(function(style){
+				list.push(style + '-' + edge + (style == 'border' ? '-width' : ''));
+			});
+		});
+	});
+	return list;
+};
+
+var calculateEdgeSize = function(edge, styles){
+	var total = 0;
+	Object.each(styles, function(value, style){
+		if (style.test(edge)) total = total + value.toInt();
+	});
+	return total;
+};
+
+var isVisible = function(el){
+	return !!(!el || el.offsetHeight || el.offsetWidth);
+};
+
+
+Element.implement({
+
+	measure: function(fn){
+		if (isVisible(this)) return fn.call(this);
+		var parent = this.getParent(),
+			toMeasure = [];
+		while (!isVisible(parent) && parent != document.body){
+			toMeasure.push(parent.expose());
+			parent = parent.getParent();
+		}
+		var restore = this.expose(),
+			result = fn.call(this);
+		restore();
+		toMeasure.each(function(restore){
+			restore();
+		});
+		return result;
+	},
+
+	expose: function(){
+		if (this.getStyle('display') != 'none') return function(){};
+		var before = this.style.cssText;
+		this.setStyles({
+			display: 'block',
+			position: 'absolute',
+			visibility: 'hidden'
+		});
+		return function(){
+			this.style.cssText = before;
+		}.bind(this);
+	},
+
+	getDimensions: function(options){
+		options = Object.merge({computeSize: false}, options);
+		var dim = {x: 0, y: 0};
+
+		var getSize = function(el, options){
+			return (options.computeSize) ? el.getComputedSize(options) : el.getSize();
+		};
+
+		var parent = this.getParent('body');
+
+		if (parent && this.getStyle('display') == 'none'){
+			dim = this.measure(function(){
+				return getSize(this, options);
+			});
+		} else if (parent){
+			try { //safari sometimes crashes here, so catch it
+				dim = getSize(this, options);
+			}catch(e){}
+		}
+
+		return Object.append(dim, (dim.x || dim.x === 0) ? {
+				width: dim.x,
+				height: dim.y
+			} : {
+				x: dim.width,
+				y: dim.height
+			}
+		);
+	},
+
+	getComputedSize: function(options){
+		//<1.2compat>
+		//legacy support for my stupid spelling error
+		if (options && options.plains) options.planes = options.plains;
+		//</1.2compat>
+
+		options = Object.merge({
+			styles: ['padding','border'],
+			planes: {
+				height: ['top','bottom'],
+				width: ['left','right']
+			},
+			mode: 'both'
+		}, options);
+
+		var styles = {},
+			size = {width: 0, height: 0},
+			dimensions;
+
+		if (options.mode == 'vertical'){
+			delete size.width;
+			delete options.planes.width;
+		} else if (options.mode == 'horizontal'){
+			delete size.height;
+			delete options.planes.height;
+		}
+
+		getStylesList(options.styles, options.planes).each(function(style){
+			styles[style] = this.getStyle(style).toInt();
+		}, this);
+
+		Object.each(options.planes, function(edges, plane){
+
+			var capitalized = plane.capitalize(),
+				style = this.getStyle(plane);
+
+			if (style == 'auto' && !dimensions) dimensions = this.getDimensions();
+
+			style = styles[plane] = (style == 'auto') ? dimensions[plane] : style.toInt();
+			size['total' + capitalized] = style;
+
+			edges.each(function(edge){
+				var edgesize = calculateEdgeSize(edge, styles);
+				size['computed' + edge.capitalize()] = edgesize;
+				size['total' + capitalized] += edgesize;
+			});
+
+		}, this);
+
+		return Object.append(size, styles);
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+script: Element.Position.js
+
+name: Element.Position
+
+description: Extends the Element native object to include methods useful positioning elements relative to others.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+  - Jacob Thornton
+
+requires:
+  - Core/Options
+  - Core/Element.Dimensions
+  - Element.Measure
+
+provides: [Element.Position]
+
+...
+*/
+
+(function(original){
+
+var local = Element.Position = {
+
+	options: {/*
+		edge: false,
+		returnPos: false,
+		minimum: {x: 0, y: 0},
+		maximum: {x: 0, y: 0},
+		relFixedPosition: false,
+		ignoreMargins: false,
+		ignoreScroll: false,
+		allowNegative: false,*/
+		relativeTo: document.body,
+		position: {
+			x: 'center', //left, center, right
+			y: 'center' //top, center, bottom
+		},
+		offset: {x: 0, y: 0}
+	},
+
+	getOptions: function(element, options){
+		options = Object.merge({}, local.options, options);
+		local.setPositionOption(options);
+		local.setEdgeOption(options);
+		local.setOffsetOption(element, options);
+		local.setDimensionsOption(element, options);
+		return options;
+	},
+
+	setPositionOption: function(options){
+		options.position = local.getCoordinateFromValue(options.position);
+	},
+
+	setEdgeOption: function(options){
+		var edgeOption = local.getCoordinateFromValue(options.edge);
+		options.edge = edgeOption ? edgeOption :
+			(options.position.x == 'center' && options.position.y == 'center') ? {x: 'center', y: 'center'} :
+			{x: 'left', y: 'top'};
+	},
+
+	setOffsetOption: function(element, options){
+		var parentOffset = {x: 0, y: 0},
+			offsetParent = element.measure(function(){
+				return document.id(this.getOffsetParent());
+			}),
+			parentScroll = offsetParent.getScroll();
+
+		if (!offsetParent || offsetParent == element.getDocument().body) return;
+		parentOffset = offsetParent.measure(function(){
+			var position = this.getPosition();
+			if (this.getStyle('position') == 'fixed'){
+				var scroll = window.getScroll();
+				position.x += scroll.x;
+				position.y += scroll.y;
+			}
+			return position;
+		});
+
+		options.offset = {
+			parentPositioned: offsetParent != document.id(options.relativeTo),
+			x: options.offset.x - parentOffset.x + parentScroll.x,
+			y: options.offset.y - parentOffset.y + parentScroll.y
+		};
+	},
+
+	setDimensionsOption: function(element, options){
+		options.dimensions = element.getDimensions({
+			computeSize: true,
+			styles: ['padding', 'border', 'margin']
+		});
+	},
+
+	getPosition: function(element, options){
+		var position = {};
+		options = local.getOptions(element, options);
+		var relativeTo = document.id(options.relativeTo) || document.body;
+
+		local.setPositionCoordinates(options, position, relativeTo);
+		if (options.edge) local.toEdge(position, options);
+
+		var offset = options.offset;
+		position.left = ((position.x >= 0 || offset.parentPositioned || options.allowNegative) ? position.x : 0).toInt();
+		position.top = ((position.y >= 0 || offset.parentPositioned || options.allowNegative) ? position.y : 0).toInt();
+
+		local.toMinMax(position, options);
+
+		if (options.relFixedPosition || relativeTo.getStyle('position') == 'fixed') local.toRelFixedPosition(relativeTo, position);
+		if (options.ignoreScroll) local.toIgnoreScroll(relativeTo, position);
+		if (options.ignoreMargins) local.toIgnoreMargins(position, options);
+
+		position.left = Math.ceil(position.left);
+		position.top = Math.ceil(position.top);
+		delete position.x;
+		delete position.y;
+
+		return position;
+	},
+
+	setPositionCoordinates: function(options, position, relativeTo){
+		var offsetY = options.offset.y,
+			offsetX = options.offset.x,
+			calc = (relativeTo == document.body) ? window.getScroll() : relativeTo.getPosition(),
+			top = calc.y,
+			left = calc.x,
+			winSize = window.getSize();
+
+		switch(options.position.x){
+			case 'left': position.x = left + offsetX; break;
+			case 'right': position.x = left + offsetX + relativeTo.offsetWidth; break;
+			default: position.x = left + ((relativeTo == document.body ? winSize.x : relativeTo.offsetWidth) / 2) + offsetX; break;
+		}
+
+		switch(options.position.y){
+			case 'top': position.y = top + offsetY; break;
+			case 'bottom': position.y = top + offsetY + relativeTo.offsetHeight; break;
+			default: position.y = top + ((relativeTo == document.body ? winSize.y : relativeTo.offsetHeight) / 2) + offsetY; break;
+		}
+	},
+
+	toMinMax: function(position, options){
+		var xy = {left: 'x', top: 'y'}, value;
+		['minimum', 'maximum'].each(function(minmax){
+			['left', 'top'].each(function(lr){
+				value = options[minmax] ? options[minmax][xy[lr]] : null;
+				if (value != null && ((minmax == 'minimum') ? position[lr] < value : position[lr] > value)) position[lr] = value;
+			});
+		});
+	},
+
+	toRelFixedPosition: function(relativeTo, position){
+		var winScroll = window.getScroll();
+		position.top += winScroll.y;
+		position.left += winScroll.x;
+	},
+
+	toIgnoreScroll: function(relativeTo, position){
+		var relScroll = relativeTo.getScroll();
+		position.top -= relScroll.y;
+		position.left -= relScroll.x;
+	},
+
+	toIgnoreMargins: function(position, options){
+		position.left += options.edge.x == 'right'
+			? options.dimensions['margin-right']
+			: (options.edge.x != 'center'
+				? -options.dimensions['margin-left']
+				: -options.dimensions['margin-left'] + ((options.dimensions['margin-right'] + options.dimensions['margin-left']) / 2));
+
+		position.top += options.edge.y == 'bottom'
+			? options.dimensions['margin-bottom']
+			: (options.edge.y != 'center'
+				? -options.dimensions['margin-top']
+				: -options.dimensions['margin-top'] + ((options.dimensions['margin-bottom'] + options.dimensions['margin-top']) / 2));
+	},
+
+	toEdge: function(position, options){
+		var edgeOffset = {},
+			dimensions = options.dimensions,
+			edge = options.edge;
+
+		switch(edge.x){
+			case 'left': edgeOffset.x = 0; break;
+			case 'right': edgeOffset.x = -dimensions.x - dimensions.computedRight - dimensions.computedLeft; break;
+			// center
+			default: edgeOffset.x = -(Math.round(dimensions.totalWidth / 2)); break;
+		}
+
+		switch(edge.y){
+			case 'top': edgeOffset.y = 0; break;
+			case 'bottom': edgeOffset.y = -dimensions.y - dimensions.computedTop - dimensions.computedBottom; break;
+			// center
+			default: edgeOffset.y = -(Math.round(dimensions.totalHeight / 2)); break;
+		}
+
+		position.x += edgeOffset.x;
+		position.y += edgeOffset.y;
+	},
+
+	getCoordinateFromValue: function(option){
+		if (typeOf(option) != 'string') return option;
+		option = option.toLowerCase();
+
+		return {
+			x: option.test('left') ? 'left'
+				: (option.test('right') ? 'right' : 'center'),
+			y: option.test(/upper|top/) ? 'top'
+				: (option.test('bottom') ? 'bottom' : 'center')
+		};
+	}
+
+};
+
+Element.implement({
+
+	position: function(options){
+		if (options && (options.x != null || options.y != null)) {
+			return (original ? original.apply(this, arguments) : this);
+		}
+		var position = this.setStyle('position', 'absolute').calculatePosition(options);
+		return (options && options.returnPos) ? position : this.setStyles(position);
+	},
+
+	calculatePosition: function(options){
+		return local.getPosition(this, options);
+	}
+
+});
+
+})(Element.prototype.position);
 
 
 /*
@@ -1021,12 +1576,6 @@ var Drag = new Class({
 		var limit = options.limit;
 		this.limit = {x: [], y: []};
 
-		var styles = this.element.getStyles('left', 'right', 'top', 'bottom');
-		this._invert = {
-			x: options.modifiers.x == 'left' && styles.left == 'auto' && !isNaN(styles.right.toInt()) && (options.modifiers.x = 'right'),
-			y: options.modifiers.y == 'top' && styles.top == 'auto' && !isNaN(styles.bottom.toInt()) && (options.modifiers.y = 'bottom')
-		};
-
 		var z, coordinates;
 		for (z in options.modifiers){
 			if (!options.modifiers[z]) continue;
@@ -1043,7 +1592,6 @@ var Drag = new Class({
 			else this.value.now[z] = this.element[options.modifiers[z]];
 
 			if (options.invert) this.value.now[z] *= -1;
-			if (this._invert[z]) this.value.now[z] *= -1;
 
 			this.mouse.pos[z] = event.page[z] - this.value.now[z];
 
@@ -1093,7 +1641,6 @@ var Drag = new Class({
 			this.value.now[z] = this.mouse.now[z] - this.mouse.pos[z];
 
 			if (options.invert) this.value.now[z] *= -1;
-			if (this._invert[z]) this.value.now[z] *= -1;
 
 			if (options.limit && this.limit[z]){
 				if ((this.limit[z][1] || this.limit[z][1] === 0) && (this.value.now[z] > this.limit[z][1])){
@@ -1207,10 +1754,9 @@ Drag.Move = new Class({
 			this.container = document.id(this.container.getDocument().body);
 
 		if (this.options.style){
-			if (this.options.modifiers.x == "left" && this.options.modifiers.y == "top"){
-				var parentStyles,
-					parent = element.getOffsetParent();
-				var styles = element.getStyles('left', 'top');
+			if (this.options.modifiers.x == 'left' && this.options.modifiers.y == 'top'){
+				var parent = element.getOffsetParent(),
+					styles = element.getStyles('left', 'top');
 				if (parent && (styles.left == 'auto' || styles.top == 'auto')){
 					element.setPosition(element.getPosition(parent));
 				}
@@ -1357,443 +1903,6 @@ Element.implement({
 /*
 ---
 
-script: Element.Measure.js
-
-name: Element.Measure
-
-description: Extends the Element native object to include methods useful in measuring dimensions.
-
-credits: "Element.measure / .expose methods by Daniel Steigerwald License: MIT-style license. Copyright: Copyright (c) 2008 Daniel Steigerwald, daniel.steigerwald.cz"
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Element.Style
-  - Core/Element.Dimensions
-  - /MooTools.More
-
-provides: [Element.Measure]
-
-...
-*/
-
-(function(){
-
-var getStylesList = function(styles, planes){
-	var list = [];
-	Object.each(planes, function(directions){
-		Object.each(directions, function(edge){
-			styles.each(function(style){
-				list.push(style + '-' + edge + (style == 'border' ? '-width' : ''));
-			});
-		});
-	});
-	return list;
-};
-
-var calculateEdgeSize = function(edge, styles){
-	var total = 0;
-	Object.each(styles, function(value, style){
-		if (style.test(edge)) total = total + value.toInt();
-	});
-	return total;
-};
-
-var isVisible = function(el){
-	return !!(!el || el.offsetHeight || el.offsetWidth);
-};
-
-
-Element.implement({
-
-	measure: function(fn){
-		if (isVisible(this)) return fn.call(this);
-		var parent = this.getParent(),
-			toMeasure = [];
-		while (!isVisible(parent) && parent != document.body){
-			toMeasure.push(parent.expose());
-			parent = parent.getParent();
-		}
-		var restore = this.expose(),
-			result = fn.call(this);
-		restore();
-		toMeasure.each(function(restore){
-			restore();
-		});
-		return result;
-	},
-
-	expose: function(){
-		if (this.getStyle('display') != 'none') return function(){};
-		var before = this.style.cssText;
-		this.setStyles({
-			display: 'block',
-			position: 'absolute',
-			visibility: 'hidden'
-		});
-		return function(){
-			this.style.cssText = before;
-		}.bind(this);
-	},
-
-	getDimensions: function(options){
-		options = Object.merge({computeSize: false}, options);
-		var dim = {x: 0, y: 0};
-
-		var getSize = function(el, options){
-			return (options.computeSize) ? el.getComputedSize(options) : el.getSize();
-		};
-
-		var parent = this.getParent('body');
-
-		if (parent && this.getStyle('display') == 'none'){
-			dim = this.measure(function(){
-				return getSize(this, options);
-			});
-		} else if (parent){
-			try { //safari sometimes crashes here, so catch it
-				dim = getSize(this, options);
-			}catch(e){}
-		}
-
-		return Object.append(dim, (dim.x || dim.x === 0) ? {
-				width: dim.x,
-				height: dim.y
-			} : {
-				x: dim.width,
-				y: dim.height
-			}
-		);
-	},
-
-	getComputedSize: function(options){
-
-
-		options = Object.merge({
-			styles: ['padding','border'],
-			planes: {
-				height: ['top','bottom'],
-				width: ['left','right']
-			},
-			mode: 'both'
-		}, options);
-
-		var styles = {},
-			size = {width: 0, height: 0},
-			dimensions;
-
-		if (options.mode == 'vertical'){
-			delete size.width;
-			delete options.planes.width;
-		} else if (options.mode == 'horizontal'){
-			delete size.height;
-			delete options.planes.height;
-		}
-
-		getStylesList(options.styles, options.planes).each(function(style){
-			styles[style] = this.getStyle(style).toInt();
-		}, this);
-
-		Object.each(options.planes, function(edges, plane){
-
-			var capitalized = plane.capitalize(),
-				style = this.getStyle(plane);
-
-			if (style == 'auto' && !dimensions) dimensions = this.getDimensions();
-
-			style = styles[plane] = (style == 'auto') ? dimensions[plane] : style.toInt();
-			size['total' + capitalized] = style;
-
-			edges.each(function(edge){
-				var edgesize = calculateEdgeSize(edge, styles);
-				size['computed' + edge.capitalize()] = edgesize;
-				size['total' + capitalized] += edgesize;
-			});
-
-		}, this);
-
-		return Object.append(size, styles);
-	}
-
-});
-
-}).call(this);
-
-
-/*
----
-
-script: Element.Position.js
-
-name: Element.Position
-
-description: Extends the Element native object to include methods useful positioning elements relative to others.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Element.Dimensions
-  - /Element.Measure
-
-provides: [Element.Position]
-
-...
-*/
-
-(function(){
-
-var original = Element.prototype.position;
-
-Element.implement({
-
-	position: function(options){
-		//call original position if the options are x/y values
-		if (options && (options.x != null || options.y != null)){
-			return original ? original.apply(this, arguments) : this;
-		}
-
-		Object.each(options || {}, function(v, k){
-			if (v == null) delete options[k];
-		});
-
-		options = Object.merge({
-			// minimum: { x: 0, y: 0 },
-			// maximum: { x: 0, y: 0},
-			relativeTo: document.body,
-			position: {
-				x: 'center', //left, center, right
-				y: 'center' //top, center, bottom
-			},
-			offset: {x: 0, y: 0}/*,
-			edge: false,
-			returnPos: false,
-			relFixedPosition: false,
-			ignoreMargins: false,
-			ignoreScroll: false,
-			allowNegative: false*/
-		}, options);
-
-		//compute the offset of the parent positioned element if this element is in one
-		var parentOffset = {x: 0, y: 0},
-			parentPositioned = false;
-
-		/* dollar around getOffsetParent should not be necessary, but as it does not return
-		 * a mootools extended element in IE, an error occurs on the call to expose. See:
-		 * http://mootools.lighthouseapp.com/projects/2706/tickets/333-element-getoffsetparent-inconsistency-between-ie-and-other-browsers */
-		var offsetParent = this.measure(function(){
-			return document.id(this.getOffsetParent());
-		});
-		if (offsetParent && offsetParent != this.getDocument().body){
-			parentOffset = offsetParent.measure(function(){
-				return this.getPosition();
-			});
-			parentPositioned = offsetParent != document.id(options.relativeTo);
-			options.offset.x = options.offset.x - parentOffset.x;
-			options.offset.y = options.offset.y - parentOffset.y;
-		}
-
-		//upperRight, bottomRight, centerRight, upperLeft, bottomLeft, centerLeft
-		//topRight, topLeft, centerTop, centerBottom, center
-		var fixValue = function(option){
-			if (typeOf(option) != 'string') return option;
-			option = option.toLowerCase();
-			var val = {};
-
-			if (option.test('left')){
-				val.x = 'left';
-			} else if (option.test('right')){
-				val.x = 'right';
-			} else {
-				val.x = 'center';
-			}
-
-			if (option.test('upper') || option.test('top')){
-				val.y = 'top';
-			} else if (option.test('bottom')){
-				val.y = 'bottom';
-			} else {
-				val.y = 'center';
-			}
-
-			return val;
-		};
-
-		options.edge = fixValue(options.edge);
-		options.position = fixValue(options.position);
-		if (!options.edge){
-			if (options.position.x == 'center' && options.position.y == 'center') options.edge = {x:'center', y:'center'};
-			else options.edge = {x:'left', y:'top'};
-		}
-
-		this.setStyle('position', 'absolute');
-		var rel = document.id(options.relativeTo) || document.body,
-				calc = rel == document.body ? window.getScroll() : rel.getPosition(),
-				top = calc.y, left = calc.x;
-
-		var dim = this.getDimensions({
-			computeSize: true,
-			styles:['padding', 'border','margin']
-		});
-
-		var pos = {},
-			prefY = options.offset.y,
-			prefX = options.offset.x,
-			winSize = window.getSize();
-
-		switch (options.position.x){
-			case 'left':
-				pos.x = left + prefX;
-				break;
-			case 'right':
-				pos.x = left + prefX + rel.offsetWidth;
-				break;
-			default: //center
-				pos.x = left + ((rel == document.body ? winSize.x : rel.offsetWidth)/2) + prefX;
-				break;
-		}
-
-		switch (options.position.y){
-			case 'top':
-				pos.y = top + prefY;
-				break;
-			case 'bottom':
-				pos.y = top + prefY + rel.offsetHeight;
-				break;
-			default: //center
-				pos.y = top + ((rel == document.body ? winSize.y : rel.offsetHeight)/2) + prefY;
-				break;
-		}
-
-		if (options.edge){
-			var edgeOffset = {};
-
-			switch (options.edge.x){
-				case 'left':
-					edgeOffset.x = 0;
-					break;
-				case 'right':
-					edgeOffset.x = -dim.x-dim.computedRight-dim.computedLeft;
-					break;
-				default: //center
-					edgeOffset.x = -(dim.totalWidth/2);
-					break;
-			}
-
-			switch (options.edge.y){
-				case 'top':
-					edgeOffset.y = 0;
-					break;
-				case 'bottom':
-					edgeOffset.y = -dim.y-dim.computedTop-dim.computedBottom;
-					break;
-				default: //center
-					edgeOffset.y = -(dim.totalHeight/2);
-					break;
-			}
-
-			pos.x += edgeOffset.x;
-			pos.y += edgeOffset.y;
-		}
-
-		pos = {
-			left: ((pos.x >= 0 || parentPositioned || options.allowNegative) ? pos.x : 0).toInt(),
-			top: ((pos.y >= 0 || parentPositioned || options.allowNegative) ? pos.y : 0).toInt()
-		};
-
-		var xy = {left: 'x', top: 'y'};
-
-		['minimum', 'maximum'].each(function(minmax){
-			['left', 'top'].each(function(lr){
-				var val = options[minmax] ? options[minmax][xy[lr]] : null;
-				if (val != null && ((minmax == 'minimum') ? pos[lr] < val : pos[lr] > val)) pos[lr] = val;
-			});
-		});
-
-		if (rel.getStyle('position') == 'fixed' || options.relFixedPosition){
-			var winScroll = window.getScroll();
-			pos.top+= winScroll.y;
-			pos.left+= winScroll.x;
-		}
-		if (options.ignoreScroll){
-			var relScroll = rel.getScroll();
-			pos.top -= relScroll.y;
-			pos.left -= relScroll.x;
-		}
-
-		if (options.ignoreMargins){
-			pos.left += (
-				options.edge.x == 'right' ? dim['margin-right'] :
-				options.edge.x == 'center' ? -dim['margin-left'] + ((dim['margin-right'] + dim['margin-left'])/2) :
-					- dim['margin-left']
-			);
-			pos.top += (
-				options.edge.y == 'bottom' ? dim['margin-bottom'] :
-				options.edge.y == 'center' ? -dim['margin-top'] + ((dim['margin-bottom'] + dim['margin-top'])/2) :
-					- dim['margin-top']
-			);
-		}
-
-		pos.left = Math.ceil(pos.left);
-		pos.top = Math.ceil(pos.top);
-		if (options.returnPos) return pos;
-		else this.setStyles(pos);
-		return this;
-	}
-
-});
-
-}).call(this);
-
-
-/*
----
-
-script: Class.Occlude.js
-
-name: Class.Occlude
-
-description: Prevents a class from being applied to a DOM element twice.
-
-license: MIT-style license.
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Class
-  - Core/Element
-  - /MooTools.More
-
-provides: [Class.Occlude]
-
-...
-*/
-
-Class.Occlude = new Class({
-
-	occlude: function(property, element){
-		element = document.id(element || this.element);
-		var instance = element.retrieve(property || this.property);
-		if (instance && !this.occluded)
-			return (this.occluded = instance);
-
-		this.occluded = false;
-		element.store(property || this.property, this);
-		return this.occluded;
-	}
-
-});
-
-
-/*
----
-
 script: IframeShim.js
 
 name: IframeShim
@@ -1921,3 +2030,4 @@ var IframeShim = new Class({
 window.addEvent('load', function(){
 	IframeShim.ready = true;
 });
+
