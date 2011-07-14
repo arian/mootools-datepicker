@@ -117,7 +117,11 @@ this.DatePicker = Picker.Date = new Class({
 
 	},
 
-	getInputDate: function(input){
+	getInputDate: function(input){	
+		
+		// Reset current view
+		this.currentView = this.options.startView;	
+		
 		this.date = new Date();
 		if (!input) return;
 		var date = Date.parse(input.get('value'));
