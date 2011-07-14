@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Full Date and TimePicker</title>
+	<title>Date Range Picker</title>
 	<script src="mootools-core.js" type="text/javascript"></script>
 	<script src="mootools-more.js" type="text/javascript"></script>
 	<script src="../Source/Locale.en-US.DatePicker.js" type="text/javascript"></script>
@@ -27,12 +27,27 @@
 		<input type="text" />
 	</p>
 
+	<p>
+		Hidden input:<br />
+		<input type="hidden" id="range_hidden" /><span id="range_text"></span><a href="#" id="range_select">Select Range</a>
+	</p>
+
 	<script>
 
-	var picker = new Picker.Date.Range($$('input'), {
+	var picker = new Picker.Date.Range($$('input[type="text"]'), {
 		timePicker: false,
 		columns: 3,
 		positionOffset: {x: 5, y: 0}
+	});
+
+	var picker2 = new Picker.Date.Range('range_hidden', {
+		toggle: $$('#range_select'),
+		columns: 3,
+		onSelect: function(){
+			$('range_text').set('text', Array.map(arguments, function(date){
+				return date.format('%e %B %Y');
+			}).join(' - '))
+		}
 	});
 
 	</script>

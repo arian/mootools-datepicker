@@ -63,14 +63,15 @@ Just include the file in your page with a script tag to use the translations.
 
 Currently the following languages are supported
 
-- en-US
+- cs-CZ
 - de-DE
+- en-US
+- es-ES
 - fr-FR
 - it-IT
 - nl-NL
-- cs-CZ
-- ru-RU
 - pl-PL
+- ru-RU
 
 You can set the current language with:
 
@@ -98,6 +99,7 @@ All the options of the Picker and Picker.Attach classes, and:
 - minDate: (*Date instance*, *string*, defaults to `null`) Minimum date allowed to pick. Blocks anything before.
 - maxDate: (*Date instance*, *string*, defaults to `null`) Maximum date allowed to pick. Blocks anything after.
 - availableDates: (*object*, defaults to `null`) When only a few dates should be selectable. An object like `{2011: {1: [19, 29, 31], 3: [5, 19, 24]}}` with all the dates (year -> months -> days).
+- invertAvailable: (*boolean*, defaults to `false`) Invert the `availableDates` option.
 - format: (*string*, defaults to the default localized format) The format to output into the input field. Uses [Date.format](http://mootools.net/docs/more/Types/Date#Date:format)
 - timePicker: (*boolean*, defaults to 1 `false`) Enable/disable timepicker functionality. Hours/Minutes values can be changed using the scrollwheel.
 - timeWheelStep: (*number*, defaults to `1`) The number of minutes the minutes field will change in the timepicker when using the scrollwheel, for example 5, 10, 15. The value will always be k * timeWheelStep.

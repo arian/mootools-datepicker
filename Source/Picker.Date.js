@@ -21,6 +21,8 @@ this.DatePicker = Picker.Date = new Class({
 		minDate: new Date('3/4/2010'), // Date object or a string
 		maxDate: new Date('3/4/2011'), // same as minDate
 		availableDates: {}, //
+		invertAvailable: false,
+
 		format: null,*/
 
 		timePicker: false,
@@ -42,20 +44,14 @@ this.DatePicker = Picker.Date = new Class({
 		months_abbr: null,
 		days_abbr: null,
 		years_title: function(date, options){
-			return Array.from(date).map(function(_date, i){
-				var year = _date.get('year');
-				return new Element('div.column', {text: year + '-' + (year + options.yearsPerPage - 1)}).addClass('column_' + (i + 1));
-			});
+			var year = date.get('year');
+			return year + '-' + (year + options.yearsPerPage - 1);
 		},
 		months_title: function(date, options){
-			return Array.from(date).map(function(_date, i){
-				return new Element('div.column', {text: _date.get('year')}).addClass('column_' + (i + 1));
-			});
+			return date.get('year');
 		},
 		days_title: function(date, options){
-			return Array.from(date).map(function(_date, i){
-				return new Element('div.column', {text: _date.format('%b %Y')}).addClass('column_' + (i + 1));
-			});
+			return date.format('%b %Y');
 		},
 		time_title: function(date, options){
 			return (options.pickOnly == 'time') ? Locale.get('DatePicker.select_a_time') : date.format('%d %B, %Y');
@@ -174,8 +170,8 @@ this.DatePicker = Picker.Date = new Class({
 		return this.setPreviousEvent(fn, true);
 	},
 
-	setColumns: function(columns, tween, view, date, viewFx){
-		var ret = this.parent(columns, tween), method;
+	setColumns: function(columns, view, date, viewFx){
+		var ret = this.parent(columns), method;
 
 		if ((view || this.currentView)
 			&& (method = 'render' + (view || this.currentView).capitalize())
@@ -215,7 +211,7 @@ this.DatePicker = Picker.Date = new Class({
 		}
 
 		this.setColumnsContent(_columns, fx);
-		this.setTitle(options.years_title(_dates, options));
+		this.setTitle(_dates, options.years_title);
 
 		// Set limits
 		var limitLeft = (options.minDate && date.get('year') <= options.minDate.get('year')),
@@ -260,7 +256,7 @@ this.DatePicker = Picker.Date = new Class({
 		}
 
 		this.setColumnsContent(_columns, fx);
-		this.setTitle(options.months_title(_dates, options));
+		this.setTitle(_dates, options.months_title);
 
 		// Set limits
 		var year = date.get('year'),
@@ -309,7 +305,7 @@ this.DatePicker = Picker.Date = new Class({
 		}
 
 		this.setColumnsContent(_columns, fx);
-		this.setTitle(options.days_title(_dates, options));
+		this.setTitle(_dates, options.days_title);
 
 		var yearmonth = date.format('%Y%m').toInt(),
 			limitLeft = (options.minDate && yearmonth <= options.minDate.format('%Y%m')),
@@ -336,11 +332,11 @@ this.DatePicker = Picker.Date = new Class({
 
 	renderTime: function(date, fx){
 		var options = this.options;
-		this.setTitle(options.time_title(date, options));
+		this.setTitle(date, options.time_title);
 
 		var originalColumns = this.originalColumns = options.columns;
 		this.currentView = null; // otherwise you'd get crazy recursion
-		this.setColumns(1, true);
+		if (originalColumns != 1) this.setColumns(1);
 
 		this.setContent(renderers.time(
 			options,
@@ -358,7 +354,7 @@ this.DatePicker = Picker.Date = new Class({
 
 		var canGoUp = options.pickOnly != 'time' || options.canAlwaysGoUp.contains('time');
 		var titleEvent = (canGoUp) ? function(){
-			this.setColumns(originalColumns, true, 'days', date, 'fade');
+			this.setColumns(originalColumns, 'days', date, 'fade');
 		}.bind(this) : null;
 		this.setTitleEvent(titleEvent);
 
@@ -615,7 +611,7 @@ var isUnavailable = function(type, date, options){
 			(minDate && year < minDate.get('year')) ||
 			(maxDate && year > maxDate.get('year')) ||
 			(
-				(availableDates != null) && (
+				(availableDates != null &&  !options.invertAvailable) && (
 					availableDates[year] == null ||
 					Object.getLength(availableDates[year]) == 0 ||
 					Object.getLength(
@@ -636,7 +632,7 @@ var isUnavailable = function(type, date, options){
 			(minDate && ms < minDate.format('%Y%m').toInt()) ||
 			(maxDate && ms > maxDate.format('%Y%m').toInt()) ||
 			(
-				(availableDates != null) && (
+				(availableDates != null && !options.invertAvailable) && (
 					availableDates[year] == null ||
 					availableDates[year][month] == null ||
 					availableDates[year][month].length == 0
@@ -649,17 +645,17 @@ var isUnavailable = function(type, date, options){
 	year = date.get('year');
 	month = date.get('month') + 1;
 	day = date.get('date');
-	return (
-		(minDate && date < minDate) ||
-		(maxDate && date > maxDate) ||
-		(
-			(availableDates != null) && (
-				availableDates[year] == null ||
-				availableDates[year][month] == null ||
-				!availableDates[year][month].contains(day)
-			)
-		)
-	);
+
+	var dateAllow = (minDate && date < minDate) || (minDate && date > maxDate);
+	if (availableDates != null){
+		dateAllow = dateAllow
+			|| availableDates[year] == null
+			|| availableDates[year][month] == null
+			|| !availableDates[year][month].contains(day);
+		if (options.invertAvailable) dateAllow = !dateAllow;
+	}
+
+	return dateAllow;
 };
 
 })();

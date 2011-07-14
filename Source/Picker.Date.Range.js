@@ -64,19 +64,9 @@ Picker.Date.Range = new Class({
 			}
 		};
 
-		var startInput = this.startInput = new Element('input', {events: Object.merge(events, {
-			click: function(){
-				startInput.focus();
-			}
-		})}).inject(footer);
-
+		var startInput = this.startInput = new Element('input', {events: events}).inject(footer);
 		new Element('span', {text: ' - '}).inject(footer);
-
-		var endInput = this.endInput = new Element('input', {events: Object.merge(events, {
-			click: function(){
-				endInput.focus();
-			}
-		})}).inject(footer);
+		var endInput = this.endInput = new Element('input', {events: events}).inject(footer);
 
 		this.applyButton = new Element('button.apply', {
 			text: Locale.get('DatePicker.apply_range'),

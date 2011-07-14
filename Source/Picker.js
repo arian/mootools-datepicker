@@ -116,29 +116,18 @@ var Picker = new Class({
 			} : null);
 			picker.setStyle('cursor', 'move');
 		}
-
-		this.addEvent('open', function(){
-			picker.setStyle('display', 'block');
-			if (shim) shim.show();
-		}, true);
-
-		this.addEvent('hide', function(){
-			picker.setStyle('display', 'none');
-			if (shim) shim.hide();
-		}, true);
-
 	},
 
 	open: function(noFx){
 		if (this.opened == true) return this;
 		this.opened = true;
+		var picker = this.picker.setStyle('display', 'block');
+		if (this.shim) this.shim.show();
 		this.fireEvent('open');
 		if (this.options.useFadeInOut && !noFx){
-			this.picker.fade('in').get('tween').chain(function(){
-				this.fireEvent('show');
-			}.bind(this));
+			picker.fade('in').get('tween').chain(this.fireEvent.pass('show', this));
 		} else {
-			this.picker.setStyle('opacity', 1);
+			picker.setStyle('opacity', 1);
 			this.fireEvent('show');
 		}
 		return this;
@@ -152,13 +141,16 @@ var Picker = new Class({
 		if (this.opened == false) return this;
 		this.opened = false;
 		this.fireEvent('close');
+		var self = this, picker = this.picker, hide = function(){
+			picker.setStyle('display', 'none');
+			if (self.shim) self.shim.hide();
+			self.fireEvent('hide');
+		};
 		if (this.options.useFadeInOut && !noFx){
-			this.picker.fade('out').get('tween').chain(function(){
-				this.fireEvent('hide');
-			}.bind(this));
+			picker.fade('out').get('tween').chain(hide);
 		} else {
-			this.picker.setStyle('opacity', 0);
-			this.fireEvent('hide');
+			picker.setStyle('opacity', 0);
+			hide();
 		}
 		return this;
 	},
@@ -252,8 +244,7 @@ var Picker = new Class({
 		return this.setContent(null, fx);
 	},
 
-	setColumns: function(columns, tween){
-
+	setColumns: function(columns){
 		var _columns = this.columns = new Elements, _newColumns = this.newColumns = new Elements;
 		for (var i = columns; i--;){
 			_columns.push(new Element('div.column').addClass('column_' + (columns - i)));
@@ -261,13 +252,8 @@ var Picker = new Class({
 		}
 
 		var oldClass = 'column_' + this.options.columns, newClass = 'column_' + columns;
-		var picker = this.picker.setStyle('width', null).removeClass(oldClass).addClass(newClass);
-		if (tween){
-			var newWidth = picker.getStyle('width');
-			picker.removeClass(newClass).addClass(oldClass);
-			picker.tween('width', newWidth);
-			picker.removeClass(oldClass).addClass(newClass);
-		}
+		this.picker.removeClass(oldClass).addClass(newClass);
+
 		this.options.columns = columns;
 		return this;
 	},
@@ -325,9 +311,15 @@ var Picker = new Class({
 		return this.picker;
 	},
 
-	setTitle: function(text){
-		if (!(/(elements|array)/.test(typeOf(text)))) text = new Element('div.column', {text: text}).addClass('column_1');
-		this.titleText.empty().adopt(text);
+	setTitle: function(content, fn){
+		if (!fn) fn = Function.from;
+		this.titleText.empty().adopt(
+			Array.from(content).map(function(item, i){
+				return typeOf(item) == 'element'
+					? item
+					: new Element('div.column', {text: fn(item, this.options)}).addClass('column_' + (i + 1));
+			}, this)
+		);
 		return this;
 	},
 
