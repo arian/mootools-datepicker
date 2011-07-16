@@ -33,6 +33,7 @@ this.DatePicker = Picker.Date = new Class({
 		yearsPerPage: 20,
 
 		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on the right might have a different margin
+		rtl: false,
 
 		startView: 'days', // allowed values: {time, days, months, years}
 		pickOnly: false, // 'years', 'months', 'days', 'time'
@@ -134,9 +135,13 @@ this.DatePicker = Picker.Date = new Class({
 	constructPicker: function(){
 		this.parent();
 
-		this.previous = new Element('div.previous[html=&#171;]').inject(this.header);
-		this.next = new Element('div.next[html=&#187;]').inject(this.header);
-	},
+		if (!this.options.rtl){
+			this.previous = new Element('div.previous[html=&#171;]').inject(this.header);
+			this.next = new Element('div.next[html=&#187;]').inject(this.header);
+		} else {
+			this.next = new Element('div.previous[html=&#171;]').inject(this.header);
+			this.previous = new Element('div.next[html=&#187;]').inject(this.header);
+		}	},
 
 	hidePrevious: function(_next, _show){
 		this[_next ? 'next' : 'previous'].setStyle('display', _show ? 'block' : 'none');
@@ -467,14 +472,27 @@ var renderers = {
 			localeDaysShort = options.days_abbr || Locale.get('Date.days_abbr'),
 			day, classes, element, weekcontainer, dateString;
 
-		for (day = options.startDay; day < (options.startDay + 7); day++){
-			new Element('div.title.day.day' + (day % 7), {
-				text: localeDaysShort[(day % 7)]
-			}).inject(titles);
+		if (!options.rtl){
+			for (day = options.startDay; day < (options.startDay + 7); day++){
+				new Element('div.title.day.day' + (day % 7), {
+					text: localeDaysShort[(day % 7)]
+				}).inject(titles);
+			}
+		} else {
+			for (day = 6 - options.startDay; day > (options.startDay -1); day--){
+				new Element('div.title.day.day' + (day % 7), {
+					text: localeDaysShort[(day % 7)]
+				}).inject(titles);
+			}
 		}
 
 		days.each(function(_date, i){
 			var date = new Date(_date);
+			var where = 'bottom';
+
+			if (options.rtl){
+				where = 'top';
+			}
 
 			if (i % 7 == 0){
 				weekcontainer = new Element('div.week.week' + (Math.floor(i / 7))).inject(container);
@@ -486,7 +504,7 @@ var renderers = {
 			if (dateString == currentString) classes += '.selected';
 			if (date.get('month') != month) classes += '.otherMonth';
 
-			element = new Element('div' + classes, {text: date.getDate()}).inject(weekcontainer);
+			element = new Element('div' + classes, {text: date.getDate()}).inject(weekcontainer, where);
 			dateElements.push({element: element, time: _date});
 
 			if (isUnavailable('date', date, options)) element.addClass('unavailable');
