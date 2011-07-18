@@ -278,3 +278,12 @@
 	color: #ccc !important;
 	border: 1px solid #ccc !important;
 }
+
+.datepicker_dashboard table {
+	border-spacing: 0;
+}
+
+.datepicker_dashboard th,
+.datepicker_dashboard td {
+	padding: 0;
+}

@@ -424,6 +424,7 @@ var renderers = {
 			if (year == today.get('year')) classes += '.today';
 			if (year == currentDate.get('year')) classes += '.selected';
 			element = new Element('div' + classes, {text: year}).inject(container);
+
 			dateElements.push({element: element, time: _year});
 
 			if (isUnavailable('year', date, options)) element.addClass('unavailable');
@@ -449,6 +450,7 @@ var renderers = {
 			if (i == month && year == thisyear) classes += '.today';
 			if (i == currentDate.get('month') && year == selectedyear) classes += '.selected';
 			element = new Element('div' + classes, {text: monthsAbbr[i]}).inject(container);
+
 			dateElements.push({element: element, time: _month});
 
 			if (isUnavailable('month', date, options)) element.addClass('unavailable');
@@ -462,14 +464,17 @@ var renderers = {
 		var month = new Date(days[14]).get('month'),
 			todayString = new Date().toDateString(),
 			currentString = currentDate.toDateString(),
-			container = new Element('div.days'),
-			titles = new Element('div.titles').inject(container),
+			container = new Element('table.days', {role: 'grid', 'aria-labelledby': this.titleId}),
+			header = new Element('thead').inject(container),
+			body = new Element('tbody').inject(container),
+			titles = new Element('tr.titles').inject(header),
 			localeDaysShort = options.days_abbr || Locale.get('Date.days_abbr'),
 			day, classes, element, weekcontainer, dateString;
 
 		for (day = options.startDay; day < (options.startDay + 7); day++){
-			new Element('div.title.day.day' + (day % 7), {
-				text: localeDaysShort[(day % 7)]
+			new Element('th.title.day.day' + (day % 7), {
+				text: localeDaysShort[(day % 7)],
+				role: 'columnheader'
 			}).inject(titles);
 		}
 
@@ -477,16 +482,18 @@ var renderers = {
 			var date = new Date(_date);
 
 			if (i % 7 == 0){
-				weekcontainer = new Element('div.week.week' + (Math.floor(i / 7))).inject(container);
+				weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
 			}
 
 			dateString = date.toDateString();
 			classes = '.day.day' + date.get('day');
 			if (dateString == todayString) classes += '.today';
-			if (dateString == currentString) classes += '.selected';
 			if (date.get('month') != month) classes += '.otherMonth';
+			element = new Element('td' + classes, {text: date.getDate(), role: 'gridcell'}).inject(weekcontainer);
 
-			element = new Element('div' + classes, {text: date.getDate()}).inject(weekcontainer);
+			if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
+			else element.set('aria-selected', 'false');
+
 			dateElements.push({element: element, time: _date});
 
 			if (isUnavailable('date', date, options)) element.addClass('unavailable');
