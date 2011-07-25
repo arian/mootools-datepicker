@@ -62,9 +62,16 @@ var Picker = new Class({
 		var header = this.header = new Element('div.header').inject(picker);
 
 		var title = this.title = new Element('div.title').inject(header);
-		this.titleText = new Element('div.titleText').inject(title);
+		this.titleId = 'pickertitle-'+String.uniqueID();
+		this.titleText = new Element('div', {
+			role: 'heading',
+			'class': 'titleText',
+			id: this.titleId,
+			'aria-live': 'assertive',
+			'aria-atomic': 'true'
+			}).inject(title);
 
-		this.closeButton = new Element('div.closeButton[text=x]')
+		this.closeButton = new Element('div.closeButton[text=x][role=button]')
 			.addEvent('click', this.close.pass(false, this))
 			.inject(header);
 
@@ -122,6 +129,7 @@ var Picker = new Class({
 		if (this.opened == true) return this;
 		this.opened = true;
 		var picker = this.picker.setStyle('display', 'block');
+		picker.set('aria-hidden', 'false');
 		if (this.shim) this.shim.show();
 		this.fireEvent('open');
 		if (this.options.useFadeInOut && !noFx){
@@ -143,6 +151,7 @@ var Picker = new Class({
 		this.fireEvent('close');
 		var self = this, picker = this.picker, hide = function(){
 			picker.setStyle('display', 'none');
+			picker.set('aria-hidden', 'true');
 			if (self.shim) self.shim.hide();
 			self.fireEvent('hide');
 		};
