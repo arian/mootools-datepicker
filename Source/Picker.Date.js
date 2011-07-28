@@ -33,6 +33,7 @@ this.DatePicker = Picker.Date = new Class({
 		yearsPerPage: 20,
 
 		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on the right might have a different margin
+		rtl: false,
 
 		startView: 'days', // allowed values: {time, days, months, years}
 		openLastView: false,
@@ -138,8 +139,13 @@ this.DatePicker = Picker.Date = new Class({
 	constructPicker: function(){
 		this.parent();
 
-		this.previous = new Element('div.previous[html=&#171;]').inject(this.header);
-		this.next = new Element('div.next[html=&#187;]').inject(this.header);
+		if (!this.options.rtl){
+			this.previous = new Element('div.previous[html=&#171;]').inject(this.header);
+			this.next = new Element('div.next[html=&#187;]').inject(this.header);
+		} else {
+			this.next = new Element('div.previous[html=&#171;]').inject(this.header);
+			this.previous = new Element('div.next[html=&#187;]').inject(this.header);
+		}
 	},
 
 	hidePrevious: function(_next, _show){
@@ -475,16 +481,18 @@ var renderers = {
 			body = new Element('tbody').inject(container),
 			titles = new Element('tr.titles').inject(header),
 			localeDaysShort = options.days_abbr || Locale.get('Date.days_abbr'),
-			day, classes, element, weekcontainer, dateString;
+			day, classes, element, weekcontainer, dateString
+			where = options.rtl ? 'top' : 'bottom';
 
 		if (weeknumbers) new Element('th.title.day.weeknumber', {
 			text: Locale.get('DatePicker.week')
 		}).inject(titles);
+
 		for (day = options.startDay; day < (options.startDay + 7); day++){
 			new Element('th.title.day.day' + (day % 7), {
 				text: localeDaysShort[(day % 7)],
 				role: 'columnheader'
-			}).inject(titles);
+			}).inject(titles, where);
 		}
 
 		days.each(function(_date, i){
@@ -492,14 +500,14 @@ var renderers = {
 
 			if (i % 7 == 0){
 				weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
-				if (weeknumbers) new Element('td.day.weeknumber', {text: date.get('week')}).inject(weekcontainer);
+				if (weeknumbers) new Element('th.day.weeknumber', {text: date.get('week'), scope: 'row', role: 'rowheader'}).inject(weekcontainer);
 			}
 
 			dateString = date.toDateString();
 			classes = '.day.day' + date.get('day');
 			if (dateString == todayString) classes += '.today';
 			if (date.get('month') != month) classes += '.otherMonth';
-			element = new Element('td' + classes, {text: date.getDate(), role: 'gridcell'}).inject(weekcontainer);
+			element = new Element('td' + classes, {text: date.getDate(), role: 'gridcell'}).inject(weekcontainer, where);
 
 			if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
 			else element.set('aria-selected', 'false');
