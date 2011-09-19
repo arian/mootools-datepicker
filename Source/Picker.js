@@ -95,18 +95,18 @@ var Picker = new Class({
 			transition: Fx.Transitions.Quad.easeInOut
 		}).inject(body);
 
-		this.oldContents = new Element('div', {
-			styles: {
-				position: 'absolute',
-				top: 0
-			}
-		}).inject(slider);
-
-		this.newContents = new Element('div', {
+        this.newContents = new Element('div', {
 			styles: {
 				position: 'absolute',
 				top: 0,
 				left: 0
+			}
+		}).inject(slider);
+
+		this.oldContents = new Element('div', {
+			styles: {
+				position: 'absolute',
+				top: 0
 			}
 		}).inject(slider);
 
