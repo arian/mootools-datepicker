@@ -73,6 +73,7 @@ Currently the following languages are supported
 - pl-PL
 - pt-BR
 - ru-RU
+- he-IL
 
 You can set the current language with:
 
