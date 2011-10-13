@@ -544,7 +544,7 @@ var renderers = {
 					value = (event.wheel > 0) ? ((value < 23) ? value + 1 : 0)
 						: ((value > 0) ? value - 1 : 23)
 					date.set('hours', value);
-					hoursInput.set('value', date.format('%H'));
+					(function(){hoursInput.set('value', date.format('%H')); }).delay(1); // Dirty fix for scrolling error in FireFox
 				}.bind(this)
 			},
 			maxlength: 2
@@ -566,7 +566,7 @@ var renderers = {
 						: ((value > 0) ? (value - options.timeWheelStep) : (60 - options.timeWheelStep));
 					if (value >= 60) value = 0;
 					date.set('minutes', value);
-					minutesInput.set('value', date.format('%M'));
+					(function(){minutesInput.set('value', date.format('%M')); }).delay(1); // Dirty fix
 				}.bind(this)
 			},
 			maxlength: 2

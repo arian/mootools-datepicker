@@ -56,6 +56,7 @@ var Picker = new Class({
 				duration: options.animationDuration,
 				link: 'cancel'
 			});
+			picker.get('tween').addEvent('complete', this.tweenComplete.bind(this) );
 		}
 
 		// Build the header
@@ -132,10 +133,10 @@ var Picker = new Class({
 		if (this.shim) this.shim.show();
 		this.fireEvent('open');
 		if (this.options.useFadeInOut && !noFx){
-			picker.fade('in').get('tween').chain(this.fireEvent.pass('show', this));
+			picker.fade('in');
 		} else {
 			picker.setStyle('opacity', 1);
-			this.fireEvent('show');
+			this.tweenComplete();
 		}
 		return this;
 	},
@@ -148,16 +149,12 @@ var Picker = new Class({
 		if (this.opened == false) return this;
 		this.opened = false;
 		this.fireEvent('close');
-		var self = this, picker = this.picker, hide = function(){
-			picker.setStyle('display', 'none').set('aria-hidden', 'true');
-			if (self.shim) self.shim.hide();
-			self.fireEvent('hide');
-		};
+		var self = this, picker = this.picker;
 		if (this.options.useFadeInOut && !noFx){
-			picker.fade('out').get('tween').chain(hide);
+			picker.fade('out');
 		} else {
 			picker.setStyle('opacity', 0);
-			hide();
+			this.tweenComplete();
 		}
 		return this;
 	},
@@ -168,6 +165,16 @@ var Picker = new Class({
 
 	toggle: function(){
 		return this[this.opened == true ? 'close' : 'open']();
+	},
+	
+	tweenComplete: function(){
+		if( this.opened == false ){
+			this.picker.setStyle('display', 'none');
+			if (this.shim) this.shim.hide();
+			this.fireEvent('hide');
+		}else{
+			this.fireEvent('show');
+		}
 	},
 
 	destroy: function(){
