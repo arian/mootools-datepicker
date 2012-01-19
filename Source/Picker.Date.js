@@ -594,7 +594,7 @@ var renderers = {
 		if (options.ampm){
 			var setHours = function(isAm, event){
 				currentHrs = date.getHours();
-				setTimeout(function(){ 
+				setTimeout(function(){ //this is a hack to get around very strange behavior where the radio reverts instantly on click
 					if (isAm && currentHrs > 11) date.setHours(currentHrs - 12)
 					else if (!isAm && currentHrs < 12) date.setHours(currentHrs + 12)
 					isPm = !isAm;
@@ -603,19 +603,19 @@ var renderers = {
 				event.stop();
 			}
 			var ampmBox = new Element('div.ampm_container').inject(container);
-			amLabel = new Element('label', {text: Date.getMsg('AM')}).inject(ampmBox);
-			am = new Element('input[type=radio].am', {
-				checked: date.getHours() < 12,
-				name: 'ampm',
-				value: 'am'
-			}).inject(ampmBox);
+			var createAmPmRadioButton = function(value, checked){
+				return new Element('input[type=radio]', {
+					checked: checked,
+					'class': value,
+					name: 'ampm',
+					value: value
+				}).inject(ampmBox);
+			}
+			var amLabel = new Element('label', {text: Date.getMsg('AM')}).inject(ampmBox);
+			am = createAmPmRadioButton('am', date.getHours() < 12);
+			var pmLabel = new Element('label', {text: Date.getMsg('PM')}).inject(ampmBox);
+			pm = createAmPmRadioButton('pm', date.getHours() > 11);
 			[amLabel, am].invoke('addEvent', 'click', setHours.bind(this, true));
-			pmLabel = new Element('label', {text: Date.getMsg('PM')}).inject(ampmBox);
-			pm = new Element('input[type=radio].pm', {
-				checked: date.getHours() > 11,
-				name: 'ampm',
-				value: 'pm'
-			}).inject(ampmBox);
 			[pmLabel, pm].invoke('addEvent', 'click', setHours.bind(this, false));
 		}
 		
