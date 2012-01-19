@@ -28,6 +28,7 @@ this.DatePicker = Picker.Date = new Class({
 		timePicker: false,
 		timePickerOnly: false, // deprecated, use onlyView = 'time'
 		timeWheelStep: 1, // 10,15,20,30
+		ampm: false,
 
 		yearPicker: true,
 		yearsPerPage: 20,
@@ -522,16 +523,27 @@ var renderers = {
 	},
 
 	time: function(options, date, fn){
+		var am, pm;
+		var isPm = date.getHours() > 11;
 		var container = new Element('div.time'),
 			// make sure that the minutes are timeWheelStep * k
 			initMinutes = (date.get('minutes') / options.timeWheelStep).round() * options.timeWheelStep
-
+		if (options.ampm) container.addClass('ampm')
+		
 		if (initMinutes >= 60) initMinutes = 0;
 		date.set('minutes', initMinutes);
-
+		
+		var hourFormat = options.ampm ? '%I' : '%H';
+		var getHours = function(){
+			var value = hoursInput.get('value').toInt();
+			if (options.ampm && isPm && value != 12) value += 12;
+			else if (options.ampm && !isPm && value == 12) value = 0;
+			return value;
+		}		
+		
 		var hoursInput = new Element('input.hour[type=text]', {
 			title: Locale.get('DatePicker.use_mouse_wheel'),
-			value: date.format('%H'),
+			value: date.format(hourFormat),
 			events: {
 				click: function(event){
 					event.target.focus();
@@ -540,11 +552,16 @@ var renderers = {
 				mousewheel: function(event){
 					event.stop();
 					hoursInput.focus();
-					var value = hoursInput.get('value').toInt();
+					var value = getHours();
 					value = (event.wheel > 0) ? ((value < 23) ? value + 1 : 0)
 						: ((value > 0) ? value - 1 : 23)
 					date.set('hours', value);
-					hoursInput.set('value', date.format('%H'));
+					if (options.ampm){
+						isPm = date.getHours() > 11;
+						if (date.getHours() > 11) pm.checked = true
+						else am.checked = true
+					}
+					hoursInput.set('value', date.format(hourFormat));
 				}.bind(this)
 			},
 			maxlength: 2
@@ -573,13 +590,41 @@ var renderers = {
 		}).inject(container);
 
 		new Element('div.separator[text=:]').inject(container);
-
+		
+		if (options.ampm){
+			var setHours = function(isAm, event){
+				currentHrs = date.getHours();
+				setTimeout(function(){ 
+					if (isAm && currentHrs > 11) date.setHours(currentHrs - 12)
+					else if (!isAm && currentHrs < 12) date.setHours(currentHrs + 12)
+					isPm = !isAm;
+					isPm ? pm.checked = true : am.checked = true; 
+				}, 100);
+				event.stop();
+			}
+			var ampmBox = new Element('div.ampm_container').inject(container);
+			amLabel = new Element('label', {text: Date.getMsg('AM')}).inject(ampmBox);
+			am = new Element('input[type=radio].am', {
+				checked: date.getHours() < 12,
+				name: 'ampm',
+				value: 'am'
+			}).inject(ampmBox);
+			[amLabel, am].invoke('addEvent', 'click', setHours.bind(this, true));
+			pmLabel = new Element('label', {text: Date.getMsg('PM')}).inject(ampmBox);
+			pm = new Element('input[type=radio].pm', {
+				checked: date.getHours() > 11,
+				name: 'ampm',
+				value: 'pm'
+			}).inject(ampmBox);
+			[pmLabel, pm].invoke('addEvent', 'click', setHours.bind(this, false));
+		}
+		
 		new Element('input.ok[type=submit]', {
 			value: Locale.get('DatePicker.time_confirm_button'),
 			events: {click: function(event){
 				event.stop();
 				date.set({
-					hours: hoursInput.get('value').toInt(),
+					hours: getHours(),
 					minutes: minutesInput.get('value').toInt()
 				});
 				fn(date.clone());

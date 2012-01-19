@@ -157,6 +157,21 @@
 	font-size: 20px;
 }
 
+.datepicker .time.ampm .ok {
+  top: 125px;
+}
+.datepicker .time .ampm_container{
+  position:absolute;
+  top: 100px;
+  left: 30px;
+  width: 135px;
+  text-align: center;
+}
+
+.datepicker .time .am{
+  margin-right:10px;
+}
+
 /* days-grid
 ********************************************************/
 .datepicker .days .day {

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Picker.Date Timepicker</title>
+	<script src="mootools-core.js" type="text/javascript"></script>
+	<script src="mootools-more.js" type="text/javascript"></script>
+	<script src="../Source/Locale.en-US.DatePicker.js" type="text/javascript"></script>
+	<script src="../Source/Picker.js" type="text/javascript"></script>
+	<script src="../Source/Picker.Attach.js" type="text/javascript"></script>
+	<script src="../Source/Picker.Date.js" type="text/javascript"></script>
+
+	<link href="style.css" rel="stylesheet" />
+	<link  href="../Source/datepicker.css" rel="stylesheet" type="text/css" media="screen" />
+	<link  href="../Source/datepicker_dashboard/datepicker_dashboard.css" rel="stylesheet" type="text/css" media="screen" />
+	<link  href="../Source/datepicker_jqui/datepicker_jqui.css" rel="stylesheet" type="text/css" media="screen" />
+	<link  href="../Source/datepicker_vista/datepicker_vista.css" rel="stylesheet" type="text/css" media="screen" />
+
+
+	<script>
+
+	window.addEvent('domready', function(){
+		new Picker.Date('dashboard', {
+			pickOnly: 'time',
+			pickerClass: 'datepicker_dashboard',
+			ampm: true
+		});
+		
+		new Picker.Date('jqui', {
+			pickOnly: 'time',
+			pickerClass: 'datepicker_jqui',
+			ampm: true
+		});
+		
+		new Picker.Date('vista', {
+			pickOnly: 'time',
+			pickerClass: 'datepicker_vista',
+			ampm: true
+		});
+		
+		new Picker.Date('default', {
+			pickOnly: 'time',
+			ampm: true
+		});
+	});
+
+	</script>
+
+</head>
+
+<body>
+	<h1>DatePicker Themes</h1>
+
+	<p>
+		This demo shows you the current four supported themes. It is just a simple option of setting the picker classname to another CSS class.
+	</p>
+
+	<p>
+		<label for="dashboard">Dashboard:</label><br />
+		<input type="text" value="11:07AM" id="dashboard">
+	</p>
+
+	<p>
+		<label for="jqui">jQuery UI:</label><br />
+		<input type="text" value="11:07AM" id="jqui">
+	</p>
+
+
+	<p>
+		<label for="vista">Vista:</label><br />
+		<input type="text" value="11:07AM" id="vista">
+	</p>
+
+	<p>
+		<label for="default">Default:</label><br />
+		<input type="text" value="11:07AM" id="default">
+	</p>
+
+</body>
+</html>
