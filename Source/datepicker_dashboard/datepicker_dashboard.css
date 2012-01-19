@@ -120,6 +120,20 @@
 	font-size: 20px;
 }
 
+.datepicker_dashboard .time.ampm .ok {
+  top: 80px;
+}
+.datepicker_dashboard .time .ampm_container{
+  position:absolute;
+  top: 55px;
+  left: 15px;
+  width: 135px;
+  text-align: center;
+}
+.datepicker_dashboard .time .am{
+  margin-right:10px;
+}
+
 /* days-grid
 ********************************************************/
 .datepicker_dashboard .days .day {

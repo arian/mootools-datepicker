@@ -123,6 +123,20 @@
 	font-size: 20px;
 }
 
+.datepicker_jqui .time.ampm .ok {
+  top: 90px;
+}
+.datepicker_jqui .time .ampm_container{
+  position:absolute;
+  top: 65px;
+  left: 15px;
+  width: 135px;
+  text-align: center;
+}
+.datepicker_jqui .time .am{
+  margin-right:10px;
+}
+
 /* days-grid
 ********************************************************/
 .datepicker_jqui .days .day {
