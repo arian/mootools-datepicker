@@ -125,9 +125,12 @@ var Picker = new Class({
 		}
 	},
 
+  opened: function(){
+    return this.picker.getStyle('display') == 'block' && this.picker.getStyle('opacity') == 1
+  },
+
 	open: function(noFx){
-		if (this.opened == true) return this;
-		this.opened = true;
+		if (this.opened()) return this;
 		var self = this,
 			picker = this.picker.setStyle('display', 'block').set('aria-hidden', 'false')
 		if (this.shim) this.shim.show();
@@ -149,8 +152,7 @@ var Picker = new Class({
 	},
 
 	close: function(noFx){
-		if (this.opened == false) return this;
-		this.opened = false;
+		if (!this.opened()) return this;
 		this.fireEvent('close');
 		var self = this, picker = this.picker, hide = function(){
 			picker.setStyle('display', 'none').set('aria-hidden', 'true');
@@ -171,7 +173,7 @@ var Picker = new Class({
 	},
 
 	toggle: function(){
-		return this[this.opened == true ? 'close' : 'open']();
+		return this[this.opened() ? 'close' : 'open']();
 	},
 
 	destroy: function(){
