@@ -5,20 +5,39 @@
 	Selected: #95adb8
 	Hover: #c6d2d8
 	Current: #f60
+	Apply: #82a7b8
+*/
+/*
+	Minimal Theme
+	Author: Leon Radley (github.com/leon)
+	
+	Selected: #95adb8
+	Hover: #c6d2d8
+	Current: #f60
 */
 .datepicker_minimal {
 	position: absolute;
-	border: 1px solid #ddd;
-	font-size: 11px;
 	width: 220px;
 	height: 200px;
 	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 2px;
+	font-size: 11px;
 	line-height: normal;
 	z-index: 3003;
-	border-radius: 2px;
-	-webkit-border-radius: 2px;
-	-moz-border-radius: 2px;
 }
+	.datepicker_minimal.column_2 {
+		width: 440px;
+	}
+	.datepicker_minimal.column_3 {
+		width: 660px;
+	}
+	.datepicker_minimal.column_4 {
+		width: 880px;
+	}
+	.datepicker_minimal.column_5 {
+		width: 1100px;
+	}
 	.datepicker_minimal th,
 	.datepicker_minimal td {
 		margin: 0;
@@ -52,13 +71,17 @@
 	height: 25px;
 }
 	.datepicker_minimal .header .title {
-		margin: 0 50px;
+		//margin: 0 50px;
 		text-align: center;
 		line-height: 25px;
 	}
 		.datepicker_minimal .header .titleText {
 			color: #fff;
 			font-weight: bold;
+		}
+		.datepicker_minimal .header .column {
+			float: left;
+			width: 220px;
 		}
 	.datepicker_minimal .header .next,
 	.datepicker_minimal .header .previous,
@@ -94,8 +117,14 @@
 	overflow: hidden;
 }
 	.datepicker_minimal .body .column {
+		float: left;
+		width: 219px;
 		height: 100%;
+		border-left: 1px solid #555;
 	}
+		.datepicker_minimal .body .column.column_1 {
+			border-left: 1px solid transparent;
+		}
 
 /*
 	Days
@@ -206,3 +235,55 @@
 		left: 40px;
 		font-size: 20px;
 	}
+
+/*
+	Footer
+*/
+.datepicker_minimal.footer {
+	height: 260px;
+}
+	.datepicker_minimal .footer {
+		width: 100%;
+		height: 60px;
+		overflow: hidden;
+	}
+		.datepicker_minimal .footer input,
+		.datepicker_minimal .footer button {
+			float: left;
+			display: block;
+			width: 50%;
+			height: 30px;
+			line-height: 30px;
+			margin: 0;
+			padding: 8px 0;
+			border: 0;
+			background-color: #fff;
+			text-align: center;
+		}
+			.datepicker_minimal .footer input:focus {
+				outline: 0;
+			}
+		.datepicker_minimal .footer span {
+			display: none;
+		}
+		.datepicker_minimal .footer input {
+			height: 14px;
+		}
+		.datepicker_minimal .footer button {
+			height: 30px;
+			line-height: 30px;
+			padding: 0;
+			border-top: 1px solid #eee;
+			cursor: pointer;
+		}
+			.datepicker_minimal .footer button:hover {
+				background: #c6d2d8;
+			}
+		.datepicker_minimal .footer .apply {
+			background-color: #95adb8;
+			color: #fff;
+			font-weight: bold;
+		}
+			.datepicker_minimal .footer .apply:hover {
+				background-color: #82a7b8;
+			}
