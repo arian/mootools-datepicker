@@ -42,6 +42,7 @@ this.DatePicker = Picker.Date = new Class({
 		updateAll : false, //whether or not to update all inputs when selecting a date
 
 		weeknumbers: false,
+		weekdays: null,
 
 		// if you like to use your own translations
 		months_abbr: null,
@@ -608,9 +609,12 @@ var isUnavailable = function(type, date, options){
 	var minDate = options.minDate,
 		maxDate = options.maxDate,
 		availableDates = options.availableDates,
+		weekdays = options.weekdays,
 		year, month, day, ms;
-
-	if (!minDate && !maxDate && !availableDates) return false;
+	if ( typeof avaliableDates == 'undefined' ) {
+		availableDates = null;
+	}
+	if (!minDate && !maxDate && !availableDates && !weekdays) return false;
 	date.clearTime();
 
 	if (type == 'year'){
@@ -653,8 +657,12 @@ var isUnavailable = function(type, date, options){
 	year = date.get('year');
 	month = date.get('month') + 1;
 	day = date.get('date');
+	weekday = date.getDay();
 
 	var dateAllow = (minDate && date < minDate) || (maxDate && date > maxDate);
+	if ( weekdays !== null ) {
+		dateAllow = dateAllow || !weekdays.contains(weekday);
+	}
 	if (availableDates != null){
 		dateAllow = dateAllow
 			|| availableDates[year] == null
