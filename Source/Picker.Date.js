@@ -195,7 +195,7 @@ this.DatePicker = Picker.Date = new Class({
 
 		// start neatly at interval (eg. 1980 instead of 1987)
 		date = date.clone().decrement('year', date.get('year') % perPage);
-	
+
 		var iterateDate = date.clone().decrement('year', Math.floor((pages - 1) / 2) * perPage);
 
 		for (var i = pages; i--;){
@@ -597,6 +597,10 @@ Picker.Date.defineRenderer = function(name, fn){
 	renderers[name] = fn;
 	return this;
 };
+
+Picker.Date.getRenderer = function(name) {
+	return renderers[name];
+}
 
 var limitDate = function(date, min, max){
 	if (min && date < min) return min;
