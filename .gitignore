@@ -1,1 +1,3 @@
 *.tmp*
+/.settings
+/.project
