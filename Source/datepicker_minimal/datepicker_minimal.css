@@ -1,0 +1,208 @@
+/*
+	Minimal Theme
+	Author: Leon Radley (github.com/leon)
+	
+	Selected: #95adb8
+	Hover: #c6d2d8
+	Current: #f60
+*/
+.datepicker_minimal {
+	position: absolute;
+	border: 1px solid #ddd;
+	font-size: 11px;
+	width: 220px;
+	height: 200px;
+	background: #fff;
+	line-height: normal;
+	z-index: 3003;
+	border-radius: 2px;
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+}
+	.datepicker_minimal th,
+	.datepicker_minimal td {
+		margin: 0;
+		padding: 0;
+	}
+	.datepicker_minimal .selected {
+		background: #95adb8 !important;
+		color: #fff !important;
+	}
+
+	.datepicker_minimal .unavailable,
+	.datepicker_minimal .day.unavailable:hover {
+		background: #edd !important;
+		color: #b88 !important;
+		cursor: default !important;
+	}
+
+	.datepicker_minimal td.day:hover,
+	.datepicker_minimal .month:hover,
+	.datepicker_minimal .year:hover {
+		background: #c6d2d8 !important;
+		color: #222 !important;
+	}
+
+/*
+	Header
+*/
+.datepicker_minimal .header {
+	position: relative;
+	background: #333;
+	height: 25px;
+}
+	.datepicker_minimal .header .title {
+		margin: 0 50px;
+		text-align: center;
+		line-height: 25px;
+	}
+		.datepicker_minimal .header .titleText {
+			color: #fff;
+			font-weight: bold;
+		}
+	.datepicker_minimal .header .next,
+	.datepicker_minimal .header .previous,
+	.datepicker_minimal .header .closeButton {
+		position: absolute;
+		top: 0;
+		width: 25px;
+		height: 25px;
+		line-height: 25px;
+		text-align: center;
+		color: #fff;
+		cursor: pointer;
+	}
+		.datepicker_minimal .header .previous {
+			left: 0;
+		}
+		.datepicker_minimal .header .next {
+			right: 25px;
+		}
+		.datepicker_minimal .header .closeButton {
+			right: 0;
+		}
+
+/*
+	Body
+*/
+.datepicker_minimal .body {
+	position: relative;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 175px;
+	overflow: hidden;
+}
+	.datepicker_minimal .body .column {
+		height: 100%;
+	}
+
+/*
+	Days
+*/
+.datepicker_minimal .days {
+	width: 100%;
+	border: 0;
+	border-spacing: 0;
+}
+	.datepicker_minimal .days .title {
+		font-weight: bold;
+		color: #444;
+		cursor: default;
+		width: 14.2857142857143%; /* 100/7 */
+	}
+		.datepicker_minimal .days.weeknumbers .title {
+			width: 12.5%;
+		}
+	.datepicker_minimal .days .otherMonth {
+		background: #eee;
+		color: #aaa;
+	}
+	.datepicker_minimal .day {
+		cursor: pointer;
+		text-align: center;
+		overflow: hidden;
+		line-height: 25px;
+	}
+		.datepicker_minimal .today {
+			color: #f60;
+			font-weight: bold;
+		}
+		.datepicker_minimal .day0 {
+			margin-right: 0;
+		}
+		.datepicker_minimal .days .week5 .day {
+			margin-bottom: 0;
+		}
+
+/*
+	Months
+*/
+.datepicker_minimal .months {
+	height: 100%;
+}
+	.datepicker_minimal .month {
+		float: left;
+		display: inline;
+		width: 33.33333333%;
+		line-height: 44px;
+		cursor: pointer;
+		vertical-align: middle;
+		text-align: center;
+		overflow: hidden;
+	}
+
+/*
+	Years
+*/
+.datepicker_minimal .years {
+	height: 100%;
+}
+	.datepicker_minimal .year {
+		float: left;
+		display: inline;
+		width: 25%;
+		line-height: 35px;
+		cursor: pointer;
+		text-align: center;
+		overflow: hidden;
+	}
+
+/*
+	Time
+*/
+.datepicker_minimal .time {
+	width: 100%;
+	height: 100%;
+	background: #fff;
+}
+	.datepicker_minimal .time .hour,
+	.datepicker_minimal .time .separator,
+	.datepicker_minimal .time .minutes {
+		position: absolute;
+		top: 50px;
+		width: 50px;
+		border: 1px dashed #ddd;
+		font-size: 32px;
+		text-align: center;
+	}
+	.datepicker_minimal .time .hour {
+		left: 40px;
+	}
+	.datepicker_minimal .time .separator {
+		background: transparent;
+		border: 0px;
+		width: 10px;
+		left: 100px;
+	}
+
+	.datepicker_minimal .time .minutes {
+		left: 120px;
+	}
+	.datepicker_minimal .time .ok {
+		position: absolute;
+		top: 105px;
+		width: 136px;
+		left: 40px;
+		font-size: 20px;
+	}

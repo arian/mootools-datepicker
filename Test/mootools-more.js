@@ -1,5 +1,5 @@
 // MooTools: the javascript framework.
-// Load this file's selection again by visiting: http://mootools.net/more/ea71e7d3aab3551fe45865dbb054a052
+// Load this file's selection again by visiting: http://mootools.net/more/ea71e7d3aab3551fe45865dbb054a052 
 // Or build this file again with packager using: packager build More/Date More/Drag More/Drag.Move More/IframeShim
 /*
 ---
@@ -155,7 +155,7 @@ var Locale = this.Locale = {
 
 		if (set) locale.define(set, key, value);
 
-
+		
 
 		if (!current) current = locale;
 
@@ -170,7 +170,7 @@ var Locale = this.Locale = {
 
 			this.fireEvent('change', locale);
 
-
+			
 		}
 
 		return this;
@@ -749,7 +749,7 @@ Date.extend({
 		return this;
 	},
 
-
+	
 
 	defineParser: function(pattern){
 		parsePatterns.push((pattern.re && pattern.handler) ? pattern : build(pattern));
@@ -1455,7 +1455,7 @@ Element.implement({
 	},
 
 	getComputedSize: function(options){
-
+		
 
 		options = Object.merge({
 			styles: ['padding','border'],
@@ -1915,3 +1915,4 @@ var IframeShim = new Class({
 window.addEvent('load', function(){
 	IframeShim.ready = true;
 });
+

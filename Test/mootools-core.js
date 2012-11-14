@@ -33,8 +33,8 @@ provides: [Core, MooTools, Type, typeOf, instanceOf, Native]
 (function(){
 
 this.MooTools = {
-	version: '1.4.0',
-	build: 'a15e35b4dbd12e8d86d9b50aa67a27e8e0071ea3'
+	version: '1.4.1',
+	build: 'd1fb25710e3c5482a219ab9dc675a4e0ad2176b6'
 };
 
 // typeOf, instanceOf
@@ -167,7 +167,7 @@ var Type = this.Type = function(name, object){
 			object.prototype.$family = (function(){
 				return lower;
 			}).hide();
-
+			
 		}
 	}
 
@@ -1164,7 +1164,7 @@ var DOMEvent = this.DOMEvent = new Type('DOMEvent', function(event, win){
 			else if (code > 95 && code < 106) this.key = code - 96;
 		}
 		if (this.key == null) this.key = String.fromCharCode(code).toLowerCase();
-	} else if (type == 'click' || type == 'dblclick' || type == 'contextmenu' || type.indexOf('mouse') == 0){
+	} else if (type == 'click' || type == 'dblclick' || type == 'contextmenu' || type == 'DOMMouseScroll' || type.indexOf('mouse') == 0){
 		var doc = win.document;
 		doc = (!doc.compatMode || doc.compatMode == 'CSS1Compat') ? doc.html : doc.body;
 		this.page = {
@@ -1184,7 +1184,7 @@ var DOMEvent = this.DOMEvent = new Type('DOMEvent', function(event, win){
 			while (related && related.nodeType == 3) related = related.parentNode;
 			this.relatedTarget = document.id(related);
 		}
-	} else if (type.indexOf('touch') == 0 || type.indexOf('gesture') == 0){ // Hotfixed 0xc2a0 char to normal space
+	} else if (type.indexOf('touch') == 0 || type.indexOf('gesture') == 0){
 		this.rotation = event.rotation;
 		this.scale = event.scale;
 		this.targetTouches = event.targetTouches;
@@ -1409,7 +1409,7 @@ this.Events = new Class({
 	addEvent: function(type, fn, internal){
 		type = removeOn(type);
 
-
+		
 
 		this.$events[type] = (this.$events[type] || []).include(fn);
 		if (internal) fn.internal = true;
@@ -3123,7 +3123,7 @@ Object.append(properties, {
 	'html': 'innerHTML',
 	'text': (function(){
 		var temp = document.createElement('div');
-		return (temp.innerText == null) ? 'textContent' : 'innerText';
+		return (temp.textContent == null) ? 'innerText': 'textContent';
 	})()
 });
 
@@ -3180,7 +3180,15 @@ Object.append(propertySetters, {
 Element.implement({
 
 	setProperty: function(name, value){
-		var setter = propertySetters[name.toLowerCase()];
+		var lower = name.toLowerCase();
+		if (value == null){
+			if (!booleans[lower]){
+				this.removeAttribute(name);
+				return this;
+			}
+			value = false;
+		}
+		var setter = propertySetters[lower];
 		if (setter) setter(this, value);
 		else this.setAttribute(name, value);
 		return this;
@@ -3204,10 +3212,7 @@ Element.implement({
 	},
 
 	removeProperty: function(name){
-		name = name.toLowerCase();
-		if (booleans[name]) this.setProperty(name, false);
-		this.removeAttribute(name);
-		return this;
+		return this.setProperty(name, null);
 	},
 
 	removeProperties: function(){
@@ -3866,7 +3871,7 @@ Element.NativeEvents = {
 	orientationchange: 2, // mobile
 	touchstart: 2, touchmove: 2, touchend: 2, touchcancel: 2, // touch
 	gesturestart: 2, gesturechange: 2, gestureend: 2, // gesture
-	focus: 2, blur: 2, change: 2, reset: 2, select: 2, submit: 2, paste: 2, oninput: 2, //form elements
+	focus: 2, blur: 2, change: 2, reset: 2, select: 2, submit: 2, paste: 2, input: 2, //form elements
 	load: 2, unload: 1, beforeunload: 2, resize: 1, move: 1, DOMContentLoaded: 1, readystatechange: 1, //window
 	error: 1, abort: 1, scroll: 1 //misc
 };
@@ -4593,27 +4598,33 @@ Element.Properties.tween = {
 Element.implement({
 
 	tween: function(property, from, to){
-		this.get('tween').start(arguments);
+		this.get('tween').start(property, from, to);
 		return this;
 	},
 
 	fade: function(how){
-		var fade = this.get('tween'), o = 'opacity', toggle;
-		how = [how, 'toggle'].pick();
+		var fade = this.get('tween'), method, to, toggle;
+		if (how == null) how = 'toggle';
 		switch (how){
-			case 'in': fade.start(o, 1); break;
-			case 'out': fade.start(o, 0); break;
-			case 'show': fade.set(o, 1); break;
-			case 'hide': fade.set(o, 0); break;
+			case 'in': method = 'start'; to = 1; break;
+			case 'out': method = 'start'; to = 0; break;
+			case 'show': method = 'set'; to = 1; break;
+			case 'hide': method = 'set'; to = 0; break;
 			case 'toggle':
 				var flag = this.retrieve('fade:flag', this.getStyle('opacity') == 1);
-				fade.start(o, (flag) ? 0 : 1);
+				method = 'start';
+				to = flag ? 0 : 1;
 				this.store('fade:flag', !flag);
 				toggle = true;
 			break;
-			default: fade.start(o, arguments);
+			default: method = 'start'; to = how;
 		}
 		if (!toggle) this.eliminate('fade:flag');
+		fade[method]('opacity', to);
+		if (method == 'set' || to != 0) this.setStyle('visibility', to == 0 ? 'hidden' : 'visible');
+		else fade.chain(function(){
+			this.element.setStyle('visibility', 'hidden');
+		});
 		return this;
 	},
 
@@ -4928,3 +4939,4 @@ window.addEvent('load', function(){
 });
 
 })(window, document);
+

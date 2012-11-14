@@ -15,6 +15,7 @@
 	<link  href="../Source/datepicker_dashboard/datepicker_dashboard.css" rel="stylesheet" type="text/css" media="screen" />
 	<link  href="../Source/datepicker_jqui/datepicker_jqui.css" rel="stylesheet" type="text/css" media="screen" />
 	<link  href="../Source/datepicker_vista/datepicker_vista.css" rel="stylesheet" type="text/css" media="screen" />
+	<link  href="../Source/datepicker_minimal/datepicker_minimal.css" rel="stylesheet" type="text/css" media="screen" />
 
 	<style>
 		.custom {
@@ -32,9 +33,7 @@
 			border: 0;
 		}
 	</style>
-
 	<script>
-
 	window.addEvent('domready', function(){
 		new Picker.Date('dashboard', {
 			pickerClass: 'datepicker_dashboard'
@@ -48,6 +47,11 @@
 			pickerClass: 'datepicker_vista'
 		});
 
+		new Picker.Date('minimal', {
+			pickerClass: 'datepicker_minimal',
+			weeknumbers:true,
+		});
+
 		new Picker.Date('default');
 
 		new Picker.Date('custom', {
@@ -55,39 +59,32 @@
 		});
 
 	});
-
 	</script>
-
 </head>
 
 <body>
 	<h1>DatePicker Themes</h1>
-
-	<p>
-		This demo shows you the current four supported themes. It is just a simple option of setting the picker classname to another CSS class.
-	</p>
-
-	<p>
-		<label for="dashboard">Dashboard:</label><br />
-		<input type="text" value="02/08/2011" id="dashboard">
-	</p>
-
-	<p>
-		<label for="jqui">jQuery UI:</label><br />
-		<input type="text" value="02/08/2011" id="jqui">
-	</p>
-
-
-	<p>
-		<label for="vista">Vista:</label><br />
-		<input type="text" value="02/08/2011" id="vista">
-	</p>
-
+	<p>This demo shows you the current four supported themes. It is just a simple option of setting the picker classname to another CSS class.</p>
 	<p>
 		<label for="default">Default:</label><br />
 		<input type="text" value="02/08/2011" id="default">
 	</p>
-
+	<p>
+		<label for="dashboard">Dashboard:</label><br />
+		<input type="text" value="02/08/2011" id="dashboard">
+	</p>
+	<p>
+		<label for="jqui">jQuery UI:</label><br />
+		<input type="text" value="02/08/2011" id="jqui">
+	</p>
+	<p>
+		<label for="vista">Vista:</label><br />
+		<input type="text" value="02/08/2011" id="vista">
+	</p>
+	<p>
+		<label for="minimal">Minimal:</label><br />
+		<input type="text" value="02/08/2011" id="minimal">
+	</p>
 	<p>
 		<label for="custom">Custom CSS classes</label><br />
 		<input type="text" value="02/08/2011" id="custom">

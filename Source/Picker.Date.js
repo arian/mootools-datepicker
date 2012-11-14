@@ -575,7 +575,8 @@ var renderers = {
 
 		new Element('div.separator[text=:]').inject(container);
 
-		new Element('input.ok[type=submit]', {
+		new Element('input.ok', {
+			'type': 'input',
 			value: Locale.get('DatePicker.time_confirm_button'),
 			events: {click: function(event){
 				event.stop();
