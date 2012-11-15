@@ -122,8 +122,7 @@ All the options of the Picker and Picker.Attach classes, and:
 - months_title: (*function*, defaults to a function which returns `date.format('%b %Y')`) A function that returns the title for the monthpicker with as arguments the date object and the options object.
 - days_title:  (*function*, defaults to a function which returns `date.format('%b %Y')`) A function that returns the title for the daypicker with as arguments the date object and the options object.
 - time_title: (*function*, defaults to a function which returns `(options.pickOnly == 'time') ?	Locale.get('DatePicker.select_a_time') : date.format('%d %B, %Y')`) A function that returns the title for the timepicker with as arguments the date object and the options object.
-
-
+- timezoneOffsetInMillis (*number*, defaults to 0) An offset of the currents browser timezone and the users timezone in milliseconds. Can be used to show correct dates if your application works on another timezone than the users browser.
 
 ### Events:
 
