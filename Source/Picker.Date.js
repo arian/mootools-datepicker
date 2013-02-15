@@ -24,6 +24,10 @@ this.DatePicker = Picker.Date = new Class({
 		invertAvailable: false,
 
 		format: null,*/
+		
+		minHour: 0, // lets the user limit the minimum hour choice
+		maxHour: 23, // lets the user set the maximum hour choice (i.e. office hours from 8AM to 6PM, etc...)
+		hourStart: '01', // lets the user initialize an hour for the timepicker (i.e. when timewheel picker opens, be 1)
 
 		timePicker: false,
 		timePickerOnly: false, // deprecated, use onlyView = 'time'
@@ -528,10 +532,12 @@ var renderers = {
 
 		if (initMinutes >= 60) initMinutes = 0;
 		date.set('minutes', initMinutes);
+		
+		HourString = options.hourStart.toString(); //user may have entered an hours date object, and we need string
 
 		var hoursInput = new Element('input.hour[type=text]', {
 			title: Locale.get('DatePicker.use_mouse_wheel'),
-			value: date.format('%H'),
+			value: date.format(HourString), //here the setting of the hour to initialize timewheel picker
 			events: {
 				click: function(event){
 					event.target.focus();
@@ -541,8 +547,8 @@ var renderers = {
 					event.stop();
 					hoursInput.focus();
 					var value = hoursInput.get('value').toInt();
-					value = (event.wheel > 0) ? ((value < 23) ? value + 1 : 0)
-						: ((value > 0) ? value - 1 : 23)
+					value = (event.wheel > options.minHour) ? ((value < options.maxHour) ? value + 1 : 0) //here set the min and max hour variables as per options
+						: ((value > options.minHour) ? value - 1 : options.maxHour) //here set the min and max hour variables as per options
 					date.set('hours', value);
 					hoursInput.set('value', date.format('%H'));
 				}.bind(this)
