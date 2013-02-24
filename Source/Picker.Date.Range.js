@@ -25,7 +25,8 @@ Picker.Date.Range = new Class({
 			}, this).join(' - '));
 		},
 		footer: true,
-		columns: 3
+		columns: 3,
+		disableStart: false
 	},
 
 	getInputDate: function(input){
@@ -66,8 +67,11 @@ Picker.Date.Range = new Class({
 				if (event.key == 'enter') self.selectRange();
 			}
 		};
-
-		var startInput = this.startInput = new Element('input', {events: events}).inject(footer);
+		var inputProperties = new Object();
+		inputProperties.events = events;
+		inputProperties.readonly = 'readonly';
+		this.options.disableStart == true?  inputProperties.readonly = 'readonly': '';
+		var startInput = this.startInput = new Element('input', inputProperties).inject(footer);
 		new Element('span', {text: ' - '}).inject(footer);
 		var endInput = this.endInput = new Element('input', {events: events}).inject(footer);
 
@@ -90,7 +94,7 @@ Picker.Date.Range = new Class({
 	select: function(date){
 		if (this.startDate && (this.endDate == this.startDate || date > this.endDate) && date >= this.startDate) this.endDate = date;
 		else {
-			this.startDate = date;
+			if(!this.options.disableStart)this.startDate = date;
 			this.endDate = date;
 		}
 		this.updateRangeSelection();
