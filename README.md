@@ -1,3 +1,8 @@
+# Fork Improvements
+
+- Months and years are now displayed in tables instead of divs.
+- A bootstrap-like theme is available. Sources are written in SCSS and can be easily modified as the positionning is no longer done in absolute.
+
 MooTools-DatePicker
 ===================
 

@@ -195,7 +195,7 @@ this.DatePicker = Picker.Date = new Class({
 
 		// start neatly at interval (eg. 1980 instead of 1987)
 		date = date.clone().decrement('year', date.get('year') % perPage);
-	
+
 		var iterateDate = date.clone().decrement('year', Math.floor((pages - 1) / 2) * perPage);
 
 		for (var i = pages; i--;){
@@ -423,16 +423,21 @@ var timesSelectors = {
 var renderers = {
 
 	years: function(years, options, currentDate, dateElements, fn){
-		var container = new Element('div.years'),
-			today = new Date(), element, classes;
+		var container = new Element('table.years'),
+			today 	  = new Date(),
+			rows 	  = [],
+			element, classes;
 
 		years.each(function(_year, i){
 			var date = new Date(_year), year = date.get('year');
-
+			if (i % 4 === 0) {
+				rows.push(new Element('tr'));
+				rows[rows.length - 1].inject(container)
+			}
 			classes = '.year.year' + i;
 			if (year == today.get('year')) classes += '.today';
 			if (year == currentDate.get('year')) classes += '.selected';
-			element = new Element('div' + classes, {text: year}).inject(container);
+			element = new Element('td' + classes, {text: year}).inject(rows[rows.length - 1]);
 
 			dateElements.push({element: element, time: _year});
 
@@ -444,22 +449,26 @@ var renderers = {
 	},
 
 	months: function(months, options, currentDate, dateElements, fn){
-		var today = new Date(),
-			month = today.get('month'),
-			thisyear = today.get('year'),
+		var today 		 = new Date(),
+			month 	 	 = today.get('month'),
+			thisyear 	 = today.get('year'),
 			selectedyear = currentDate.get('year'),
-			container = new Element('div.months'),
-			monthsAbbr = options.months_abbr || Locale.get('Date.months_abbr'),
+			container 	 = new Element('table.months'),
+			monthsAbbr   = options.months_abbr || Locale.get('Date.months_abbr'),
+			rows		 = [],
 			element, classes;
 
 		months.each(function(_month, i){
 			var date = new Date(_month), year = date.get('year');
+			if (i % 3 === 0) {
+				rows.push(new Element('tr'));
+				rows[rows.length - 1].inject(container)
+			}
 
 			classes = '.month.month' + (i + 1);
 			if (i == month && year == thisyear) classes += '.today';
 			if (i == currentDate.get('month') && year == selectedyear) classes += '.selected';
-			element = new Element('div' + classes, {text: monthsAbbr[i]}).inject(container);
-
+			element = new Element('td' + classes, {text: monthsAbbr[i]}).inject(rows[rows.length - 1]);
 			dateElements.push({element: element, time: _month});
 
 			if (isUnavailable('month', date, options)) element.addClass('unavailable');
@@ -550,6 +559,8 @@ var renderers = {
 			maxlength: 2
 		}).inject(container);
 
+		new Element('div.separator[text=:]').inject(container);
+
 		var minutesInput = new Element('input.minutes[type=text]', {
 			title: Locale.get('DatePicker.use_mouse_wheel'),
 			value: date.format('%M'),
@@ -572,10 +583,9 @@ var renderers = {
 			maxlength: 2
 		}).inject(container);
 
-		new Element('div.separator[text=:]').inject(container);
 
 		new Element('input.ok', {
-			'type': 'input',
+			'type': 'submit',
 			value: Locale.get('DatePicker.time_confirm_button'),
 			events: {click: function(event){
 				event.stop();
