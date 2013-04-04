@@ -495,28 +495,40 @@ var renderers = {
 			}).inject(titles, where);
 		}
 
-		days.each(function(_date, i){
-			var date = new Date(_date);
-
-			if (i % 7 == 0){
-				weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
-				if (weeknumbers) new Element('th.day.weeknumber', {text: date.get('week'), scope: 'row', role: 'rowheader'}).inject(weekcontainer);
-			}
-
-			dateString = date.toDateString();
-			classes = '.day.day' + date.get('day');
-			if (dateString == todayString) classes += '.today';
-			if (date.get('month') != month) classes += '.otherMonth';
-			element = new Element('td' + classes, {text: date.getDate(), role: 'gridcell'}).inject(weekcontainer, where);
-
-			if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
-			else element.set('aria-selected', 'false');
-
-			dateElements.push({element: element, time: _date});
-
-			if (isUnavailable('date', date, options)) element.addClass('unavailable');
-			else element.addEvent('click', fn.pass(date.clone()));
-		});
+		var lastDay = 0;
+        	days.each(function(_date, i){
+	            var date = new Date(_date);
+	            if(lastDay ==  date.getDate()){
+	            /**
+	             * Do nothing here
+	             * Workaround: October 19 is duplicated if MinDate OR MaxDate is provide. See:
+	             * @link: https://github.com/arian/mootools-datepicker/issues/137 
+	             * @todo: implement a fix for this issue
+	             */
+	             
+	            }else{
+	                if (i % 7 == 0 && date.get('day') ==0){ // October 19 (or 26 after fix) is not breaking correctly into a new line 
+	                    weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
+	                    if (weeknumbers) new Element('th.day.weeknumber', {text: date.get('week'), scope: 'row', role: 'rowheader'}).inject(weekcontainer);
+	                    lineCounter=0;
+	                }
+	                 
+	                dateString = date.toDateString();
+	                classes = '.day.day' + date.get('day');
+	                if (dateString == todayString) classes += '.today';
+	                if (date.get('month') != month) classes += '.otherMonth';
+	                element = new Element('td' + classes, {text: date.getDate(), role: 'gridcell'}).inject(weekcontainer, where);
+	 
+	                if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
+	                else element.set('aria-selected', 'false');
+	 
+	                dateElements.push({element: element, time: _date});
+	 
+	                if (isUnavailable('date', date, options)) element.addClass('unavailable');
+	                else element.addEvent('click', fn.pass(date.clone()));
+	            }
+	            lastDay =  date.getDate();
+	        });
 
 		return container;
 	},
