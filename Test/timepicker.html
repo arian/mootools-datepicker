@@ -12,12 +12,14 @@
 
 	<link href="style.css" rel="stylesheet" />
 	<link href="../Source/datepicker.css" rel="stylesheet">
+	<link href="../Source/datepicker_bootstrap/datepicker_bootstrap.css" rel="stylesheet">
 
 	<script>
 
 	window.addEvent('domready', function(){
 		myPicker = new Picker.Date($$('input'), {
 			pickOnly: 'time',
+			pickerClass: 'datepicker_bootstrap',
 			timeWheelStep: 5
 		});
 	});

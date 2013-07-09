@@ -535,6 +535,10 @@ var renderers = {
 		var container = new Element('div.time'),
 			// make sure that the minutes are timeWheelStep * k
 			initMinutes = (date.get('minutes') / options.timeWheelStep).round() * options.timeWheelStep;
+			
+		if ( ! options.use24hourPicker ) {
+			container.addClass('hasAMPM');
+		}
 
 		if (initMinutes >= 60) initMinutes = 0;
 		date.set('minutes', initMinutes);
@@ -583,14 +587,55 @@ var renderers = {
 			maxlength: 2
 		}).inject(container);
 
+		if ( ! options.use24HourPicker ) {
+			
+			var activateSelectedButton = function(e) {
+				e.preventDefault();
+				ampmWrapper.getElement('.active').removeClass('active');
+				this.addClass('active');
+			};
+			
+			var ampmWrapper = new Element('div.ampmWrapper').inject(container);
+			var amButton = new Element('a.am', {
+				href : '#',
+				text : 'am',
+				events : {
+					click : activateSelectedButton
+				}
+			}).inject(ampmWrapper);
+			var pmButton = new Element('a.pm', {
+				href : '#',
+				text : 'pm',
+				events : {
+					click : activateSelectedButton
+				}
+			}).inject(ampmWrapper);
+			
+			if ( date.get('hours') > 12 ) {
+				pmButton.addClass('active');
+			} else {
+				amButton.addClass('active');
+			}
+		}
+
 
 		new Element('input.ok', {
 			'type': 'submit',
 			value: Locale.get('DatePicker.time_confirm_button'),
 			events: {click: function(event){
+				var selectedHours = hoursInput.get('value').toInt(),
+				    isPM;
 				event.stop();
+				if ( ! options.use24HourPicker ) {
+					isPM = pmButton.hasClass('active');
+					if ( selectedHours === 12 ) {
+						selectedHours = (isPM) ? selectedHours : 0;
+					} else {
+						selectedHours = (isPM) ? selectedHours + 12 : selectedHours;
+					}
+				}
 				date.set({
-					hours: hoursInput.get('value').toInt(),
+					hours: selectedHours,
 					minutes: minutesInput.get('value').toInt()
 				});
 				fn(date.clone());

@@ -144,11 +144,38 @@
       display: inline-block; }
   .datepicker_bootstrap .time .hour,
   .datepicker_bootstrap .time .separator,
-  .datepicker_bootstrap .time .minutes {
+  .datepicker_bootstrap .time .minutes,
+  .datepicker_bootstrap .time .ampmWrapper {
     width: 3em;
     font-size: 1.5em;
     text-align: center;
     padding: 0.2em; }
+  .datepicker_bootstrap .time .ampmWrapper {
+    text-transform: uppercase;
+    font-size: 0.825em;
+    float: right;
+    margin: -0.5em 0.5em 0 0; }
+    .datepicker_bootstrap .time .ampmWrapper a {
+      text-decoration: none;
+      display: block;
+      color: #cccccc;
+      line-height: 1.5;
+      border: 1px solid white;
+      -webkit-border-radius: 2px;
+      -moz-border-radius: 2px;
+      border-radius: 2px; }
+      .datepicker_bootstrap .time .ampmWrapper a.am {
+        margin-bottom: 0.25em; }
+      .datepicker_bootstrap .time .ampmWrapper a:hover {
+        background-color: #eeeeee; }
+      .datepicker_bootstrap .time .ampmWrapper a:active {
+        -webkit-box-shadow: inset 0 1px 5px #999999;
+        -moz-box-shadow: inset 0 1px 5px #999999;
+        box-shadow: inset 0 1px 5px #999999; }
+      .datepicker_bootstrap .time .ampmWrapper a.active {
+        border-color: #ccc;
+        background-color: #fbfbfb;
+        color: #049cdb; }
   .datepicker_bootstrap .time .separator {
     width: 1em; }
   .datepicker_bootstrap .time .ok:active {
