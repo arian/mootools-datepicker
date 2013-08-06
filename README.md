@@ -117,6 +117,7 @@ All the options of the Picker and Picker.Attach classes, and:
 - yearPicker: (*boolean*, defaults to `true`) Enable/disable yearpicker functionality. Makes it much easier to change years.
 - yearPerPage: (*number*, defaults to `20`) Amount of years to show in the year-picking view. Be aware that this may affect your layout.
 - startView: (*string*, defaults to `days`) The view that will be showed when the picker opens. The options are `time`, `days`, `months` and `years`
+- startDay: (*number*, defaults to 1) The day number for the start of the week. 0 - sunday, 1 - monday, etc.
 - openLastView: (*boolean*, defaults to `false`) Opens the last opened view after the picker is opened again, instead of the `startView`
 - pickOnly: (*string*, defaults to `false`) If you just want to pick a year, month, day or time. The options are `time`, `days`, `months` and `years`
 - canAlwaysGoUp: (*array*, defaults to `['months', 'days']`) The views where you can click the title to go up. The options are `time`, `days`, `months` and `years`
