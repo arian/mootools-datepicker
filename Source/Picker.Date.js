@@ -625,7 +625,6 @@ var isUnavailable = function(type, date, options){
 		year, month, day, ms;
 
 	if (!minDate && !maxDate && !availableDates) return false;
-	date.clearTime();
 
 	if (type == 'year'){
 		year = date.get('year');
