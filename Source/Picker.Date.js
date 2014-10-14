@@ -23,7 +23,10 @@ this.DatePicker = Picker.Date = new Class({
 		availableDates: {}, //
 		invertAvailable: false,
 
-		format: null,*/
+		format: null,
+
+		timeDefaultHour: 12,
+		timeDefaultMinute: 0,*/
 
 		timePicker: false,
 		timePickerOnly: false, // deprecated, use onlyView = 'time'
@@ -540,7 +543,7 @@ var renderers = {
 
 		var hoursInput = new Element('input.hour[type=text]', {
 			title: Locale.get('DatePicker.use_mouse_wheel'),
-			value: date.format('%H'),
+			value: (options.timeDefaultHour) ? options.timeDefaultHour : date.format('%H'),
 			events: {
 				click: function(event){
 					event.target.focus();
@@ -563,7 +566,7 @@ var renderers = {
 
 		var minutesInput = new Element('input.minutes[type=text]', {
 			title: Locale.get('DatePicker.use_mouse_wheel'),
-			value: date.format('%M'),
+			value: (options.timeDefaultMinute) ? options.timeDefaultMinute : date.format('%M'),
 			events: {
 				click: function(event){
 					event.target.focus();
