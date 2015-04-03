@@ -301,7 +301,7 @@ this.DatePicker = Picker.Date = new Class({
 				this.date.clone(),
 				this.dateElements,
 				function(date){
-					if (options.pickOnly == 'days' || !options.timePicker) this.select(date)
+					if (options.pickOnly == 'days' || !options.timePicker) this.select(date);
 					else this.renderTime(date, 'fade');
 					this.date = date;
 				}.bind(this)
@@ -533,7 +533,7 @@ var renderers = {
 	time: function(options, date, fn){
 		var container = new Element('div.time'),
 			// make sure that the minutes are timeWheelStep * k
-			initMinutes = (date.get('minutes') / options.timeWheelStep).round() * options.timeWheelStep
+			initMinutes = (date.get('minutes') / options.timeWheelStep).round() * options.timeWheelStep;
 
 		if (initMinutes >= 60) initMinutes = 0;
 		date.set('minutes', initMinutes);
@@ -551,7 +551,7 @@ var renderers = {
 					hoursInput.focus();
 					var value = hoursInput.get('value').toInt();
 					value = (event.wheel > 0) ? ((value < 23) ? value + 1 : 0)
-						: ((value > 0) ? value - 1 : 23)
+						: ((value > 0) ? value - 1 : 23);
 					date.set('hours', value);
 					hoursInput.set('value', date.format('%H'));
 				}.bind(this)
@@ -610,7 +610,7 @@ Picker.Date.defineRenderer = function(name, fn){
 
 Picker.Date.getRenderer = function(name) {
 	return renderers[name];
-}
+};
 
 var limitDate = function(date, min, max){
 	if (min && date < min) return min;
