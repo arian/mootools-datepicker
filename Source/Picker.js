@@ -129,7 +129,7 @@ var Picker = new Class({
 		if (this.opened == true) return this;
 		this.opened = true;
 		var self = this,
-			picker = this.picker.setStyle('display', 'block').set('aria-hidden', 'false')
+			picker = this.picker.setStyle('display', 'block').set('aria-hidden', 'false');
 		if (this.shim) this.shim.show();
 		this.fireEvent('open');
 		if (this.options.useFadeInOut && !noFx){
@@ -193,7 +193,7 @@ var Picker = new Class({
 
 			x = (where == 'left') ? elementCoords.left - pickersize.x
 				: (where == 'bottom' || where == 'top') ? elementCoords.left
-				: elementCoords.right
+				: elementCoords.right;
 			y = (where == 'bottom') ? elementCoords.bottom
 				: (where == 'top') ? elementCoords.top - pickersize.y
 				: elementCoords.top;
