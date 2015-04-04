@@ -193,6 +193,52 @@
 	color: #aaa;
 }
 
+.datepicker .days .today {
+	background: #5D6E95;
+	color: #aaa;
+}
+
+/* dayRange-grid
+********************************************************/
+.datepicker .days .dayRanges {
+	float: left;
+	background: #ccc;
+	cursor: pointer;
+	text-align: center;
+	padding-top: 4px;
+	width: 172px;
+	overflow: hidden;
+	height: 24px;
+	margin: 0 3px 3px 0;
+}
+
+.datepicker .days .dayRange0 {
+	margin-right: 0;
+}
+
+.datepicker .days .dayRanges .week5 .day {
+	margin-bottom: 0;
+}
+
+/* days-colors
+********************************************************/
+.datepicker .days .dayRanges.title {
+	background: #5D6E95;
+	font-weight: bold;
+	color: #fff;
+	cursor: default;
+}
+
+.datepicker .days .dayRanges.otherMonth {
+	background: #eee;
+	color: #aaa;
+}
+
+.datepicker .days .dayRanges.today {
+	background: #5D6E95;
+	color: #aaa;
+}
+
 /* months
 ********************************************************/
 .datepicker .months .month {
