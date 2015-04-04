@@ -117,6 +117,16 @@ $datepicker-header-height: 2.5em;
     }
 
 
+    /* weeks-grid
+    ********************************************************/
+    .dayRanges {
+        td {
+            width: 100%;
+        }
+        .otherMonth {
+            color: $grayLight;
+        }
+    }
     /* days-grid
     ********************************************************/
     .days {
