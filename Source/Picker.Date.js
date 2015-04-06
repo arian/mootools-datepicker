@@ -483,6 +483,7 @@ var renderers = {
 	days: function(days, options, currentDate, dateElements, fn){
 		var month = new Date(days[14]).get('month'),
 			todayString = new Date().toISOString(),
+			todayInt = new Date().format('%Y%m%d').toInt(),
 			currentString = currentDate.toISOString(),
 			weeknumbers = options.weeknumbers,
 			container = new Element('table.days' + (weeknumbers ? '.weeknumbers' : ''), {
@@ -492,7 +493,7 @@ var renderers = {
 			body = new Element('tbody').inject(container),
 			titles = new Element('tr.titles').inject(header),
 			localeDaysShort = options.days_abbr || Locale.get('Date.days_abbr'),
-			day, classes, element, weekcontainer, dateString, endOfWeekString,
+			day, classes, element, weekcontainer, dateString, dateInt, endOfWeekInt,
 			where = options.rtl ? 'top' : 'bottom';
 
         if(!options.daysToDayRangePerWeek)
@@ -557,10 +558,11 @@ var renderers = {
                     role: 'rowheader'
                 }).inject(weekcontainer);
 
+                dateInt = date.format('%Y%m%d').toInt();
                 dateString = date.toISOString();
-                endOfWeekString = endOfWeek.toISOString();
+                endOfWeekInt = endOfWeek.format('%Y%m%d').toInt();
                 classes = '.dayRanges.dayRange' + (Math.floor(i / 7));
-                if (todayString >= dateString && todayString <= endOfWeekString) classes += '.today';
+                if (todayInt >= dateInt && todayInt <= endOfWeekInt) classes += '.today';
                 if (date.get('month') != month && endOfWeek.get('month') != month) classes += '.otherMonth';
                 element = new Element('td' + classes, {
                     text: date.format('%d.%m.') + ' - ' + endOfWeek.format('%d.%m.'),   /* todo make format customizable  */
