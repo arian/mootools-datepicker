@@ -537,8 +537,9 @@ var renderers = {
 
                 dateElements.push({element: element, time: _date});
 
+                var dateClone = date.clone();
                 if (isUnavailable('date', date, options)) element.addClass('unavailable');
-                else element.addEvent('click', fn.pass(date.clone()));
+                else element.addEvent('click', fn.pass(dateClone));
             });
         }
         else
@@ -574,8 +575,9 @@ var renderers = {
 
                 dateElements.push({element: element, time: _date});
 
+                var dateClone = date.clone();
                 if (isUnavailable('date', date, options)) element.addClass('unavailable');
-                else element.addEvent('click', fn.pass(date.clone()));
+                else element.addEvent('click', fn.pass(dateClone));
             });
         }
 
