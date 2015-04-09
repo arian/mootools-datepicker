@@ -552,8 +552,8 @@ var renderers = {
                 var date = new Date(_date);
                 var endOfWeek = new Date(days[i+6]);
 
-                weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
-                if (weeknumbers) new Element('th.day.weeknumber', {
+                weekcontainer = new Element('tr.week.dayRange.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
+                if (weeknumbers) new Element('th.dayRange.weeknumber', {
                     text: date.get('week'),
                     scope: 'row',
                     role: 'rowheader'
@@ -562,10 +562,10 @@ var renderers = {
                 dateInt = date.format('%Y%m%d').toInt();
                 dateString = date.toISOString();
                 endOfWeekInt = endOfWeek.format('%Y%m%d').toInt();
-                classes = '.dayRanges.dayRange' + (Math.floor(i / 7));
+                classes = '.dayRange.dayRange' + (Math.floor(i / 7));
                 if (todayInt >= dateInt && todayInt <= endOfWeekInt) classes += '.today';
                 if (date.get('month') != month && endOfWeek.get('month') != month) classes += '.otherMonth';
-                element = new Element('td' + classes, {
+                element = new Element('td[colspan=7]' + classes, {
                     text: date.format('%d.%m.') + ' - ' + endOfWeek.format('%d.%m.'),   /* todo make format customizable  */
                     role: 'gridcell'
                 }).inject(weekcontainer, where);
