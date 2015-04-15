@@ -34,7 +34,8 @@ this.DatePicker = Picker.Date = new Class({
 
         daysToDayRangePerWeek: false,
 
-		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on the right might have a different margin
+		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on
+					 // the right might have a different margin
 		rtl: false,
 
 		startView: 'days', // allowed values: {time, days, months, years}
@@ -496,88 +497,83 @@ var renderers = {
 			day, classes, element, weekcontainer, dateString, dateInt, endOfWeekInt,
 			where = options.rtl ? 'top' : 'bottom';
 
-        if(!options.daysToDayRangePerWeek)
-        {
-            if (weeknumbers) new Element('th.title.day.weeknumber', {
-                text: Locale.get('DatePicker.week')
-            }).inject(titles);
+		if (!options.daysToDayRangePerWeek) {
+			if (weeknumbers) new Element('th.title.day.weeknumber', {
+				text: Locale.get('DatePicker.week')
+			}).inject(titles);
 
-            for (day = options.startDay; day < (options.startDay + 7); day++){
-                new Element('th.title.day.day' + (day % 7), {
-                    text: localeDaysShort[(day % 7)],
-                    role: 'columnheader'
-                }).inject(titles, where);
-            }
+			for (day = options.startDay; day < (options.startDay + 7); day++) {
+				new Element('th.title.day.day' + (day % 7), {
+					text: localeDaysShort[(day % 7)],
+					role: 'columnheader'
+				}).inject(titles, where);
+			}
 
-            days.each(function (_date, i)
-            {
-                var date = new Date(_date);
+			days.each(function(_date, i){
+				var date = new Date(_date);
 
-                if (i % 7 == 0)
-                {
-                    weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
-                    if (weeknumbers) new Element('th.day.weeknumber', {
-                        text: date.get('week'),
-                        scope: 'row',
-                        role: 'rowheader'
-                    }).inject(weekcontainer);
-                }
+				if (i % 7 == 0) {
+					weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
+					if (weeknumbers) new Element('th.day.weeknumber', {
+						text: date.get('week'),
+						scope: 'row',
+						role: 'rowheader'
+					}).inject(weekcontainer);
+				}
 
-                dateString = date.toISOString();
-                classes = '.day.day' + date.get('day');
-                if (dateString == todayString) classes += '.today';
-                if (date.get('month') != month) classes += '.otherMonth';
-                element = new Element('td' + classes, {
-                    text: date.getDate(),
-                    role: 'gridcell'
-                }).inject(weekcontainer, where);
+				dateString = date.toISOString();
+				classes = '.day.day' + date.get('day');
+				if (dateString == todayString) classes += '.today';
+				if (date.get('month') != month) classes += '.otherMonth';
+				element = new Element('td' + classes, {
+					text: date.getDate(),
+					role: 'gridcell'
+				}).inject(weekcontainer, where);
 
-                if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
-                else element.set('aria-selected', 'false');
+				if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
+				else element.set('aria-selected', 'false');
 
-                dateElements.push({element: element, time: _date});
+				dateElements.push({element: element, time: _date});
 
-                if (isUnavailable('date', date, options)) element.addClass('unavailable');
-                else element.addEvent('click', fn.pass(date.clone()));
-            });
-        }
-        else
-        {
-            days.each(function (_date, i, days)
-            {
-                if(i % 7 != 0)
-                    return;
+				if (isUnavailable('date', date, options)) element.addClass('unavailable');
+				else element.addEvent('click', fn.pass(date.clone()));
+			});
+		}
+		else {
+			days.each(function(_date, i, days){
+				if (i % 7 != 0)
+					return;
 
-                var date = new Date(_date);
-                var endOfWeek = new Date(days[i+6]);
+				var date = new Date(_date);
+				var endOfWeek = new Date(days[i + 6]);
 
-                weekcontainer = new Element('tr.week.dayRange.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
-                if (weeknumbers) new Element('th.dayRange.weeknumber', {
-                    text: date.get('week'),
-                    scope: 'row',
-                    role: 'rowheader'
-                }).inject(weekcontainer);
+				weekcontainer = new Element('tr.week.dayRange.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
+				if (weeknumbers) new Element('th.dayRange.weeknumber', {
+					text: date.get('week'),
+					scope: 'row',
+					role: 'rowheader'
+				}).inject(weekcontainer);
 
-                dateInt = date.format('%Y%m%d').toInt();
-                dateString = date.toISOString();
-                endOfWeekInt = endOfWeek.format('%Y%m%d').toInt();
-                classes = '.dayRange.dayRange' + (Math.floor(i / 7));
-                if (todayInt >= dateInt && todayInt <= endOfWeekInt) classes += '.today';
-                if (date.get('month') != month && endOfWeek.get('month') != month) classes += '.otherMonth';
-                element = new Element('td[colspan=7]' + classes, {
-                    text: date.format('%d.%m.') + ' - ' + endOfWeek.format('%d.%m.'),   /* todo make format customizable  */
-                    role: 'gridcell'
-                }).inject(weekcontainer, where);
+				dateInt = date.format('%Y%m%d').toInt();
+				dateString = date.toISOString();
+				endOfWeekInt = endOfWeek.format('%Y%m%d').toInt();
+				classes = '.dayRange.dayRange' + (Math.floor(i / 7));
+				if (todayInt >= dateInt && todayInt <= endOfWeekInt) classes += '.today';
+				if (date.get('month') != month && endOfWeek.get('month') != month) classes += '.otherMonth';
+				element = new Element('td[colspan=7]' + classes, {
+					text: date.format('%d.%m.') + ' - ' + endOfWeek.format('%d.%m.'), /* todo make format customizable  */
+					role: 'gridcell'
+				}).inject(weekcontainer, where);
 
-                if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
-                else element.set('aria-selected', 'false');
+				if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
+				else element.set('aria-selected', 'false');
 
-                dateElements.push({element: element, time: _date});
+				dateElements.push({element: element, time: _date});
 
-                if (isUnavailable('date', date, options)) element.addClass('unavailable');
-                else element.addEvent('click', fn.pass(date.clone()));
-            });
-        }
+				if (isUnavailable('date', date, options)) element.addClass('unavailable');
+				else element.addEvent('click', fn.pass(date.clone()));
+			});
+		}
 
 		return container;
 	},
