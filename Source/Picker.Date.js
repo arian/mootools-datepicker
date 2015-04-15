@@ -32,7 +32,7 @@ this.DatePicker = Picker.Date = new Class({
 		yearPicker: true,
 		yearsPerPage: 20,
 
-        daysToDayRangePerWeek: false,
+        groupDaysToWeeks: false,
 
 		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on
 					 // the right might have a different margin
@@ -497,7 +497,7 @@ var renderers = {
 			day, classes, element, weekcontainer, dateString, dateInt, endOfWeekInt,
 			where = options.rtl ? 'top' : 'bottom';
 
-		if (!options.daysToDayRangePerWeek) {
+		if (!options.groupDaysToWeeks) {
 			if (weeknumbers) new Element('th.title.day.weeknumber', {
 				text: Locale.get('DatePicker.week')
 			}).inject(titles);
