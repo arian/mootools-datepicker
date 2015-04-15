@@ -561,7 +561,7 @@ var renderers = {
 				if (todayInt >= dateInt && todayInt <= endOfWeekInt) classes += '.today';
 				if (date.get('month') != month && endOfWeek.get('month') != month) classes += '.otherMonth';
 				element = new Element('td[colspan=7]' + classes, {
-					text: date.format(options.weekpickerDateDisplayFormat) + ' - ' + endOfWeek.format(options.weekpickerDateDisplayFormat), /* todo make format customizable  */
+					text: date.format(options.weekpickerDateDisplayFormat) + ' - ' + endOfWeek.format(options.weekpickerDateDisplayFormat),
 					role: 'gridcell'
 				}).inject(weekcontainer, where);
 
