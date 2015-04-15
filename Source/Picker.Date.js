@@ -538,8 +538,7 @@ var renderers = {
 				if (isUnavailable('date', date, options)) element.addClass('unavailable');
 				else element.addEvent('click', fn.pass(date.clone()));
 			});
-		}
-		else {
+		} else {
 			days.each(function(_date, i, days){
 				if (i % 7 != 0)
 					return;
@@ -547,7 +546,7 @@ var renderers = {
 				var date = new Date(_date);
 				var endOfWeek = new Date(days[i + 6]);
 
-				weekcontainer = new Element('tr.week.dayRange.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
+				weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
 				if (weeknumbers) new Element('th.dayRange.weeknumber', {
 					text: date.get('week'),
 					scope: 'row',
