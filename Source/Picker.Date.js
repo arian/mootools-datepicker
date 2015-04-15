@@ -32,7 +32,8 @@ this.DatePicker = Picker.Date = new Class({
 		yearPicker: true,
 		yearsPerPage: 20,
 
-        groupDaysToWeeks: false,
+		groupDaysToWeeks: false,
+		weekpickerDateDisplayFormat: '%m.%d.',
 
 		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on
 					 // the right might have a different margin
@@ -560,7 +561,7 @@ var renderers = {
 				if (todayInt >= dateInt && todayInt <= endOfWeekInt) classes += '.today';
 				if (date.get('month') != month && endOfWeek.get('month') != month) classes += '.otherMonth';
 				element = new Element('td[colspan=7]' + classes, {
-					text: date.format('%d.%m.') + ' - ' + endOfWeek.format('%d.%m.'), /* todo make format customizable  */
+					text: date.format(options.weekpickerDateDisplayFormat) + ' - ' + endOfWeek.format(options.weekpickerDateDisplayFormat), /* todo make format customizable  */
 					role: 'gridcell'
 				}).inject(weekcontainer, where);
 
