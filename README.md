@@ -123,7 +123,8 @@ All the options of the Picker and Picker.Attach classes, and:
 - canAlwaysGoUp: (*array*, defaults to `['months', 'days']`) The views where you can click the title to go up. The options are `time`, `days`, `months` and `years`
 - updateAll (*boolean*, defaults to `false`) whether or not to update all inputs when selecting a date
 - weeknumbers (*boolean*, defaults to `false`) display weeknumbers for the `days` view
-- daysToDayRangePerWeek (*boolean*, defaults to `false`) changes the selectors for single days, to a week selector
+- groupDaysToWeeks (*boolean*, defaults to `false`) changes the selectors for single days, to a week selector. Selecting a week returns the first day of the week.
+- weekpickerDateDisplayFormat (*string*, defaults to `%m.%d.`) defines how the first and last day of the week is displayed.
 - months_abbr: (*array*) An array with the month name abbreviations. If nothing is set, it will automatically use MooTools Locale to get the abbreviations
 - days_abbr: (*array*) An array with the day name abbreviations. If nothing is set, it will automatically use MooTools Locale to get the abbreviations
 - years_title: (*function*, defaults to a function which returns `year + '-' + (year + options.yearsPerPage - 1)`) A function that returns the title for the yearpicker with as arguments the date object and the options object.
