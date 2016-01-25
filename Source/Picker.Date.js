@@ -28,6 +28,7 @@ this.DatePicker = Picker.Date = new Class({
 		timePicker: false,
 		timePickerOnly: false, // deprecated, use onlyView = 'time'
 		timeWheelStep: 1, // 10,15,20,30
+		timezoneOffsetInMillis: 0,
 
 		yearPicker: true,
 		yearsPerPage: 20,
@@ -108,8 +109,8 @@ this.DatePicker = Picker.Date = new Class({
 
 			// This is where we store the selected date
 			if (!this.currentView || !options.openLastView) this.currentView = options.startView;
-
-			this.date = limitDate(new Date(), options.minDate, options.maxDate);
+			
+			this.date = limitDate(new Date().increment('ms', options.timezoneOffsetInMillis), options.minDate, options.maxDate);
 			var tag = element.get('tag'), input;
 			if (tag == 'input') input = element;
 			else {
@@ -124,7 +125,7 @@ this.DatePicker = Picker.Date = new Class({
 	},
 
 	getInputDate: function(input){
-		this.date = new Date();
+		this.date = new Date().increment('ms', this.options.timezoneOffsetInMillis);
 		if (!input) return;
 		var date = Date.parse(input.get('value'));
 		if (date == null || !date.isValid()){
