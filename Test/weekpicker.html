@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Week Picker</title>
+	<script src="mootools-core.js" type="text/javascript"></script>
+	<script src="mootools-more.js" type="text/javascript"></script>
+	<script src="../Source/Locale.en-US.DatePicker.js" type="text/javascript"></script>
+	<script src="../Source/Picker.js" type="text/javascript"></script>
+	<script src="../Source/Picker.Attach.js" type="text/javascript"></script>
+	<script src="../Source/Picker.Date.js" type="text/javascript"></script>
+
+	<link href="style.css" rel="stylesheet" />
+	<link href="../Source/datepicker.css" rel="stylesheet">
+
+
+</head>
+
+<body>
+
+	<h1>Week Picker</h1>
+
+	<p>
+		Inputs:<br>
+		<input type="text" value="04/15/2015">
+	</p>
+
+	<script>
+
+	var picker = new Picker.Date($$('input'), {
+		weeknumbers: true,
+		groupDaysToWeeks: true,
+		weekpickerDateDisplayFormat: '%m.%d.%Y'
+	});
+
+	</script>
+
+</body>
+</html>

@@ -32,7 +32,11 @@ this.DatePicker = Picker.Date = new Class({
 		yearPicker: true,
 		yearsPerPage: 20,
 
-		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on the right might have a different margin
+		groupDaysToWeeks: false,
+		weekpickerDateDisplayFormat: '%m.%d.',
+
+		startDay: 1, // Sunday (0) through Saturday (6) - be aware that this may affect your layout, since the days on
+					 // the right might have a different margin
 		rtl: false,
 
 		startView: 'days', // allowed values: {time, days, months, years}
@@ -301,7 +305,7 @@ this.DatePicker = Picker.Date = new Class({
 				this.date.clone(),
 				this.dateElements,
 				function(date){
-					if (options.pickOnly == 'days' || !options.timePicker) this.select(date)
+					if (options.pickOnly == 'days' || !options.timePicker) this.select(date);
 					else this.renderTime(date, 'fade');
 					this.date = date;
 				}.bind(this)
@@ -480,8 +484,9 @@ var renderers = {
 
 	days: function(days, options, currentDate, dateElements, fn){
 		var month = new Date(days[14]).get('month'),
-			todayString = new Date().toDateString(),
-			currentString = currentDate.toDateString(),
+			todayString = new Date().toISOString(),
+			todayInt = new Date().format('%Y%m%d').toInt(),
+			currentString = currentDate.toISOString(),
 			weeknumbers = options.weeknumbers,
 			container = new Element('table.days' + (weeknumbers ? '.weeknumbers' : ''), {
 				role: 'grid', 'aria-labelledby': this.titleID
@@ -490,42 +495,85 @@ var renderers = {
 			body = new Element('tbody').inject(container),
 			titles = new Element('tr.titles').inject(header),
 			localeDaysShort = options.days_abbr || Locale.get('Date.days_abbr'),
-			day, classes, element, weekcontainer, dateString,
+			day, classes, element, weekcontainer, dateString, dateInt, endOfWeekInt,
 			where = options.rtl ? 'top' : 'bottom';
 
-		if (weeknumbers) new Element('th.title.day.weeknumber', {
-			text: Locale.get('DatePicker.week')
-		}).inject(titles);
+		if (!options.groupDaysToWeeks) {
+			if (weeknumbers) new Element('th.title.day.weeknumber', {
+				text: Locale.get('DatePicker.week')
+			}).inject(titles);
 
-		for (day = options.startDay; day < (options.startDay + 7); day++){
-			new Element('th.title.day.day' + (day % 7), {
-				text: localeDaysShort[(day % 7)],
-				role: 'columnheader'
-			}).inject(titles, where);
-		}
-
-		days.each(function(_date, i){
-			var date = new Date(_date);
-
-			if (i % 7 == 0){
-				weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
-				if (weeknumbers) new Element('th.day.weeknumber', {text: date.get('week'), scope: 'row', role: 'rowheader'}).inject(weekcontainer);
+			for (day = options.startDay; day < (options.startDay + 7); day++) {
+				new Element('th.title.day.day' + (day % 7), {
+					text: localeDaysShort[(day % 7)],
+					role: 'columnheader'
+				}).inject(titles, where);
 			}
 
-			dateString = date.toDateString();
-			classes = '.day.day' + date.get('day');
-			if (dateString == todayString) classes += '.today';
-			if (date.get('month') != month) classes += '.otherMonth';
-			element = new Element('td' + classes, {text: date.getDate(), role: 'gridcell'}).inject(weekcontainer, where);
+			days.each(function(_date, i){
+				var date = new Date(_date);
 
-			if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
-			else element.set('aria-selected', 'false');
+				if (i % 7 == 0) {
+					weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
+					if (weeknumbers) new Element('th.day.weeknumber', {
+						text: date.get('week'),
+						scope: 'row',
+						role: 'rowheader'
+					}).inject(weekcontainer);
+				}
 
-			dateElements.push({element: element, time: _date});
+				dateString = date.toISOString();
+				classes = '.day.day' + date.get('day');
+				if (dateString == todayString) classes += '.today';
+				if (date.get('month') != month) classes += '.otherMonth';
+				element = new Element('td' + classes, {
+					text: date.getDate(),
+					role: 'gridcell'
+				}).inject(weekcontainer, where);
 
-			if (isUnavailable('date', date, options)) element.addClass('unavailable');
-			else element.addEvent('click', fn.pass(date.clone()));
-		});
+				if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
+				else element.set('aria-selected', 'false');
+
+				dateElements.push({element: element, time: _date});
+
+				if (isUnavailable('date', date, options)) element.addClass('unavailable');
+				else element.addEvent('click', fn.pass(date.clone()));
+			});
+		} else {
+			days.each(function(_date, i, days){
+				if (i % 7 != 0)
+					return;
+
+				var date = new Date(_date);
+				var endOfWeek = new Date(days[i + 6]);
+
+				weekcontainer = new Element('tr.week.week' + (Math.floor(i / 7))).set('role', 'row').inject(body);
+				if (weeknumbers) new Element('th.dayRange.weeknumber', {
+					text: date.get('week'),
+					scope: 'row',
+					role: 'rowheader'
+				}).inject(weekcontainer);
+
+				dateInt = date.format('%Y%m%d').toInt();
+				dateString = date.toISOString();
+				endOfWeekInt = endOfWeek.format('%Y%m%d').toInt();
+				classes = '.dayRange.dayRange' + (Math.floor(i / 7));
+				if (todayInt >= dateInt && todayInt <= endOfWeekInt) classes += '.today';
+				if (date.get('month') != month && endOfWeek.get('month') != month) classes += '.otherMonth';
+				element = new Element('td[colspan=7]' + classes, {
+					text: date.format(options.weekpickerDateDisplayFormat) + ' - ' + endOfWeek.format(options.weekpickerDateDisplayFormat),
+					role: 'gridcell'
+				}).inject(weekcontainer, where);
+
+				if (dateString == currentString) element.addClass('selected').set('aria-selected', 'true');
+				else element.set('aria-selected', 'false');
+
+				dateElements.push({element: element, time: _date});
+
+				if (isUnavailable('date', date, options)) element.addClass('unavailable');
+				else element.addEvent('click', fn.pass(date.clone()));
+			});
+		}
 
 		return container;
 	},
@@ -533,7 +581,7 @@ var renderers = {
 	time: function(options, date, fn){
 		var container = new Element('div.time'),
 			// make sure that the minutes are timeWheelStep * k
-			initMinutes = (date.get('minutes') / options.timeWheelStep).round() * options.timeWheelStep
+			initMinutes = (date.get('minutes') / options.timeWheelStep).round() * options.timeWheelStep;
 
 		if (initMinutes >= 60) initMinutes = 0;
 		date.set('minutes', initMinutes);
@@ -551,7 +599,7 @@ var renderers = {
 					hoursInput.focus();
 					var value = hoursInput.get('value').toInt();
 					value = (event.wheel > 0) ? ((value < 23) ? value + 1 : 0)
-						: ((value > 0) ? value - 1 : 23)
+						: ((value > 0) ? value - 1 : 23);
 					date.set('hours', value);
 					hoursInput.set('value', date.format('%H'));
 				}.bind(this)
@@ -610,7 +658,7 @@ Picker.Date.defineRenderer = function(name, fn){
 
 Picker.Date.getRenderer = function(name) {
 	return renderers[name];
-}
+};
 
 var limitDate = function(date, min, max){
 	if (min && date < min) return min;

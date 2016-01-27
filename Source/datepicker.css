@@ -193,6 +193,51 @@
 	color: #aaa;
 }
 
+.datepicker .days .today {
+	background: #5D6E95;
+	color: #aaa;
+}
+
+/* dayRange-grid
+********************************************************/
+.datepicker .days .dayRange {
+	float: left;
+	background: #ccc;
+	cursor: pointer;
+	text-align: center;
+	padding-top: 4px;
+	overflow: hidden;
+	height: 25px;
+	margin: 0 3px 3px 0;
+}
+
+.datepicker .days .dayRange0 {
+	margin-right: 0;
+}
+
+.datepicker .days .dayRange .week5 .day {
+	margin-bottom: 0;
+}
+
+/* dayRange-colors
+********************************************************/
+.datepicker .days .dayRange.title {
+	background: #5D6E95;
+	font-weight: bold;
+	color: #fff;
+	cursor: default;
+}
+
+.datepicker .days .dayRange.otherMonth {
+	background: #eee;
+	color: #aaa;
+}
+
+.datepicker .days .dayRange.today {
+	background: #5D6E95;
+	color: #aaa;
+}
+
 /* months
 ********************************************************/
 .datepicker .months .month {
@@ -271,6 +316,7 @@
 }
 
 .datepicker .days .week .day:hover,
+.datepicker .days .week .dayRange:hover,
 .datepicker .months .month:hover,
 .datepicker .years .year:hover {
 	background: #5D6E95 !important;
@@ -280,9 +326,14 @@
 .datepicker .days.weeknumbers .day {
 	width: 22px;
 }
+.datepicker .days.weeknumbers .dayRange {
+	width: 172px;
+}
 
 .datepicker .days.weeknumbers .day.weeknumber,
-.datepicker .days.weeknumbers .day.weeknumber:hover {
+.datepicker .days.weeknumbers .day.weeknumber:hover,
+.datepicker .days.weeknumbers .dayRange.weeknumber,
+.datepicker .days.weeknumbers .dayRange.weeknumber:hover {
 	color: #AAA !important;
 	width: 16px !important;
 	background: #EEE !important;
