@@ -42,7 +42,7 @@ $datepicker-header-height: 2.5em;
     line-height     : normal;
     width           : $datepicker-width;
     padding         : 0.3em;
-    background-color: white;
+    background-color: $backgroundColor;
     border          : 1px solid $grayLightBetween;
     @include box-shadow(0 5px 10px rgba(0,0,0,0.2));
     @include border-radius(3px);
@@ -73,8 +73,8 @@ $datepicker-header-height: 2.5em;
             overflow            : hidden;
             top                 : 1em;
             display             : block;
-            border-top          : 6px solid white;
-            border-bottom       : 6px solid white;
+            border-top          : 6px solid $backgroundColor;
+            border-bottom       : 6px solid $backgroundColor;
             height              : 0px;
         }
         .previous {
@@ -181,12 +181,47 @@ $datepicker-header-height: 2.5em;
 
     .time .hour,
     .time .separator,
-    .time .minutes {
+    .time .minutes,
+	.time .ampmWrapper {
         width       : 3em;
         font-size   : 1.5em;
         text-align  : center;
         padding     : 0.2em;
     }
+	
+	.time .ampmWrapper {
+		text-transform: uppercase;
+		font-size: 0.825em;
+		float: right;
+		margin: -0.5em 0.5em 0 0;
+		
+		a {
+			text-decoration: none;
+			display: block;
+			color: $grayLightBetween;
+			line-height: 1.5;
+			border: 1px solid $backgroundColor;
+			@include border-radius(2px);
+			
+			&.am {
+				margin-bottom: 0.25em;
+			}
+			
+			&:hover {
+        		background-color: $grayLighter;
+			}
+			
+			&:active {
+        		@include box-shadow(inset 0 1px 5px $grayLight);
+			}
+			
+			&.active {
+				border-color: #ccc;
+				background-color: lighten($grayLighter, 5%);
+				color: $selectedColor;
+			}
+		}
+	}
 
     .time .separator {
         width: 1em;
@@ -207,7 +242,7 @@ $datepicker-header-height: 2.5em;
         box-shadow      : none;
         border          : solid 1px #CCC;
         outline         : none;
-        background-color: white;
+        background-color: $backgroundColor;
         @include border-radius(2px);
     }
 }
