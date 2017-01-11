@@ -160,6 +160,7 @@
 	Months
 */
 .datepicker_minimal .months {
+	width: 100%;
 	height: 100%;
 }
 	.datepicker_minimal .month {
@@ -177,6 +178,7 @@
 	Years
 */
 .datepicker_minimal .years {
+	width: 100%;
 	height: 100%;
 }
 	.datepicker_minimal .year {
