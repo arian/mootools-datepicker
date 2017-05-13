@@ -554,7 +554,10 @@ var renderers = {
 						: ((value > 0) ? value - 1 : 23)
 					date.set('hours', value);
 					hoursInput.set('value', date.format('%H'));
-				}.bind(this)
+				}.bind(this),
+        keypress: function(event){
+         if(event.key == 'enter') okButton.click();
+        }
 			},
 			maxlength: 2
 		}).inject(container);
@@ -578,13 +581,16 @@ var renderers = {
 					if (value >= 60) value = 0;
 					date.set('minutes', value);
 					minutesInput.set('value', date.format('%M'));
-				}.bind(this)
+				}.bind(this),
+        keypress: function(event){
+          if(event.key == 'enter') okButton.click();
+        }
 			},
 			maxlength: 2
 		}).inject(container);
 
 
-		new Element('input.ok', {
+		var okButton = new Element('input.ok', {
 			'type': 'submit',
 			value: Locale.get('DatePicker.time_confirm_button'),
 			events: {click: function(event){
@@ -596,6 +602,11 @@ var renderers = {
 				fn(date.clone());
 			}}
 		}).inject(container);
+
+    setTimeout(function () {
+      hoursInput.focus();
+      hoursInput.select();
+    }, 0);
 
 		return container;
 	}
