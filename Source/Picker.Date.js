@@ -670,11 +670,12 @@ var isUnavailable = function(type, date, options){
 
 	var dateAllow = (minDate && date < minDate) || (maxDate && date > maxDate);
 	if (availableDates != null){
-		dateAllow = dateAllow
-			|| availableDates[year] == null
+		var availableDatesAllow =
+			availableDates[year] == null
 			|| availableDates[year][month] == null
 			|| !availableDates[year][month].contains(day);
-		if (options.invertAvailable) dateAllow = !dateAllow;
+		if (options.invertAvailable) availableDatesAllow = !availableDatesAllow;
+		dateAllow = dateAllow || availableDatesAllow;
 	}
 
 	return dateAllow;
